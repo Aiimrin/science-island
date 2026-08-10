@@ -126,10 +126,6 @@ UNITS.forEach(u=>{
         // 更新计数
         unlocked++;
         document.getElementById('stats').innerHTML='已获得 <strong>'+unlocked+'</strong> / '+total+' 枚徽章'+(unlocked>=total?' 🎉 全部集齐！':'');
-        // 清除首页通知点
-        if(JSON.parse(localStorage.getItem('sci_pending')||'[]').length===0){
-          try{document.getElementById('badge-dot').classList.remove('on')}catch(e){}
-        }
       };
     }
 

@@ -350,7 +350,7 @@ function clearProgress(){if(confirm('确定要清空所有学习进度吗？此�
 function resetView(){offsetX=0;offsetY=0}
 
 (function(){var r=JSON.parse(localStorage.getItem('sci_review')||'[]');var today=new Date().toDateString();var due=r.filter(function(q){return new Date(q.next)<=new Date(today)}).length;document.getElementById('review-count').textContent=due||0;})();
-(function(){var p=JSON.parse(localStorage.getItem('sci_pending')||'[]');if(p.length>0)document.getElementById('badge-dot').classList.add('on');})();
+function updateBadgeDot(){var p=JSON.parse(localStorage.getItem('sci_pending')||'[]');var d=document.getElementById('badge-dot');if(p.length>0)d.classList.add('on');else d.classList.remove('on')}updateBadgeDot();window.addEventListener('pageshow',updateBadgeDot);
 requestAnimationFrame(render);
 </script>
 </body>
