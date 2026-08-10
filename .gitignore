@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+# Windows
+Thumbs.db
+# Temp files
+*.tmp
+~$*
+# Kenney assets (not needed for deployment)
+kenney_assets/
+kenney_pixel_platformer.zip
+assets_pixel_platformer.zip
+test_kenney.zip
+e7874ca621d0eb6ec939640c5e248eb8.png
+spritesheet.png

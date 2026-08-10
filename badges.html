@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>徽章墙 - 科学闯关岛</title>
+<style>
+@font-face{font-family:'PxFont';src:url('JinzisheBianzheng-Regular.ttf') format('truetype');}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'PxFont','Microsoft YaHei','SimHei',sans-serif;background:#fef9f0;min-height:100vh;color:#4a3020;-webkit-font-smoothing:none;image-rendering:pixelated}
+.top{display:flex;align-items:center;gap:12px;padding:14px 16px;background:#fffdf6;border-bottom:3px solid #c8b898;position:sticky;top:0;z-index:10}
+.back-btn{width:40px;height:40px;border:2px solid #c8b898;background:#fdf6ed;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 rgba(120,90,50,.12);color:#4a3020}
+h1{font-size:24px;font-weight:700}
+.stats{padding:14px 16px;text-align:center;font-size:15px;color:#8a7060;background:#fdf6ed;border-bottom:2px solid rgba(0,0,0,.04)}
+.stats strong{color:#d4a020;font-size:22px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:20px;max-width:800px;margin:0 auto}
+@media(max-width:600px){.grid{grid-template-columns:repeat(2,1fr);gap:12px;padding:14px}}
+.badge-card{text-align:center;padding:18px 10px;border:3px solid #e0d8c8;background:#fffdf8;border-radius:6px;transition:all .3s;box-shadow:2px 2px 0 rgba(120,90,50,.08);position:relative;overflow:hidden;cursor:default}
+.badge-card.locked{opacity:.45;filter:grayscale(1)}
+.badge-card.unlocked{border-color:#d4a020}
+.badge-card.pending{border-color:#e8c840;cursor:pointer;animation:pendingPulse 2s ease-in-out infinite}
+.badge-card.pending:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,160,32,.2)}
+@keyframes pendingPulse{0%,100%{box-shadow:2px 2px 0 rgba(120,90,50,.08)}50%{box-shadow:0 0 20px rgba(232,200,64,.3)}}
+.badge-card.reveal{animation:reveal .5s ease-out}
+@keyframes reveal{0%{transform:scale(1.1);border-color:#f0d050}100%{transform:scale(1);border-color:#d4a020}}
+.badge-icon{width:56px;height:56px;margin:0 auto 10px;font-size:40px;line-height:56px;position:relative}
+.badge-icon .frame{position:absolute;inset:-4px;border:2px solid rgba(0,0,0,.8);border-radius:4px;pointer-events:none}
+.badge-card.unlocked .badge-icon .frame{border-color:#d4a020;box-shadow:0 0 8px rgba(212,160,32,.3)}
+.badge-name{font-size:15px;font-weight:700;margin-bottom:2px}
+.badge-unit{font-size:11px;color:#8a7060;margin-bottom:6px}
+.badge-status{font-size:12px;font-weight:700}
+.badge-status.got{color:#4a8020}.badge-status.lost{color:#b0a090}
+.badge-status.pending{color:#c08020}
+.pending-overlay{position:absolute;inset:0;background:rgba(255,248,220,.6);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#c08020;pointer-events:none}
+.bgm-btn{position:fixed;bottom:20px;right:20px;width:44px;height:44px;border:2px solid #c8b898;background:rgba(255,252,246,.9);font-size:22px;cursor:pointer;z-index:50;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 rgba(120,90,50,.12);transition:all .2s}
+.bgm-btn.muted{opacity:.5}
+/* 烟花粒子 */
+.spark{position:fixed;pointer-events:none;z-index:200;font-size:24px;animation:sparkFly .8s ease-out forwards}
+@keyframes sparkFly{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(0)}}
+</style>
+</head>
+<body>
+<audio id="bgm" src="Spring_Wild_Horseradish_Jam.mp3" autoplay loop volume="0.18"></audio>
+<script>(function(){var a=document.getElementById('bgm');var t=parseFloat(localStorage.getItem('bgm_t')||'0');if(t>0)a.currentTime=t;a.play();setInterval(function(){localStorage.setItem('bgm_t',a.currentTime)},300);window.addEventListener('beforeunload',function(){localStorage.setItem('bgm_t',a.currentTime)});})();</script>
+<div class="top"><button class="back-btn" onclick="history.back()">←</button><h1>🏆 徽章墙</h1></div>
+<div class="stats" id="stats"></div>
+<div class="grid" id="grid"></div>
+<button class="bgm-btn" id="bgm-btn" onclick="toggleBGM()" title="音乐">♫</button>
+
+<script>
+// ==================== 音效 ====================
+const AC=new(window.AudioContext||window.webkitAudioContext)();
+function playTone(freq,dur,type,vol,delay){
+  const o=AC.createOscillator(),g=AC.createGain();
+  o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,AC.currentTime+delay);
+  g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+delay+dur);
+  o.connect(g);g.connect(AC.destination);o.start(AC.currentTime+delay);o.stop(AC.currentTime+delay+dur);
+}
+function sfxUnlock(){AC.resume();playTone(523,.1,'square',.1,0);playTone(659,.1,'square',.1,.08);playTone(784,.1,'square',.1,.16);playTone(1047,.2,'square',.12,.24);playTone(784,.15,'square',.1,.4);playTone(1047,.3,'square',.12,.5)}
+function sfxClick(){AC.resume();playTone(880,.08,'square',.08,0)}
+
+// ==================== 数据 ====================
+const UNITS=[
+  {id:'s4a1',name:'动物王国',sem:'四上',icon:'🐾'},{id:'s4a2',name:'运动竞技',sem:'四上',icon:'🏎️'},
+  {id:'s4a3',name:'力学工坊',sem:'四上',icon:'⚡'},{id:'s4a4',name:'电路实验室',sem:'四上',icon:'💡'},
+  {id:'s3b1',name:'植物乐园',sem:'三下',icon:'🌱'},{id:'s3b2',name:'声音探秘',sem:'三下',icon:'🔊'},
+  {id:'s3b3',name:'材料工坊',sem:'三下',icon:'🧱'},{id:'s3b4',name:'气象站',sem:'三下',icon:'🌈'},
+];
+const BADGES=[{id:'master',name:'知识大师',desc:'闯关全部通关'},{id:'lab',name:'实验达人',desc:'实验室探索完成'}];
+
+const pr=JSON.parse(localStorage.getItem('sci_prog')||'{}');
+const labPr=JSON.parse(localStorage.getItem('sci_lab')||'{}');
+const pending=JSON.parse(localStorage.getItem('sci_pending')||'[]');
+let unlocked=0,total=UNITS.length*BADGES.length;
+
+function isUnlocked(uid,bid){
+  if(bid==='master')return (pr[uid]||{c:0}).c>=4;
+  if(bid==='lab')return (labPr[uid]||{done:false}).done;
+  return false;
+}
+
+const grid=document.getElementById('grid');
+UNITS.forEach(u=>{
+  BADGES.forEach(bt=>{
+    const badgeKey=u.id+'-'+bt.id;
+    const got=isUnlocked(u.id,bt.id);
+    const isPending=pending.indexOf(badgeKey)!==-1;
+    if(got)unlocked++;
+
+    const card=document.createElement('div');
+    card.className='badge-card'+(got?' unlocked':(isPending?' pending':' locked'));
+    card.setAttribute('data-key',badgeKey);
+    const star=got?'⭐':'';
+    card.innerHTML=`
+      <div class="badge-icon">${bt.id==='master'?u.icon:'🔬'}<div class="frame"></div></div>
+      <div class="badge-name">${star} ${bt.name}</div>
+      <div class="badge-unit">${u.sem} · ${u.name}</div>
+      <div class="badge-status${got?' got':(isPending?' pending':' lost')}">${got?bt.desc:(isPending?'👆 点击解锁':'🔒 未解锁')}</div>
+      ${isPending?'<div class="pending-overlay">✨ 点击解锁</div>':''}
+    `;
+
+    if(isPending){
+      card.onclick=function(){
+        // 移除pending状态
+        var p=JSON.parse(localStorage.getItem('sci_pending')||'[]');
+        var idx=p.indexOf(badgeKey);
+        if(idx!==-1){p.splice(idx,1);localStorage.setItem('sci_pending',JSON.stringify(p))}
+        // 动画
+        card.classList.remove('pending');card.classList.add('unlocked','reveal');
+        card.querySelector('.pending-overlay').remove();
+        card.querySelector('.badge-status').textContent=bt.desc;
+        card.querySelector('.badge-status').className='badge-status got';
+        card.querySelector('.badge-name').innerHTML='⭐ '+bt.name;
+        sfxUnlock();
+        // 烟花粒子
+        var rect=card.getBoundingClientRect();
+        for(var i=0;i<8;i++){
+          var s=document.createElement('div');s.className='spark';
+          s.style.left=(rect.left+rect.width/2)+'px';s.style.top=(rect.top+rect.height/2)+'px';
+          s.style.setProperty('--dx',(Math.random()-.5)*120+'px');
+          s.style.setProperty('--dy',(Math.random()-.5)*120+'px');
+          s.textContent=['✨','🌟','💫','⭐'][i%4];
+          document.body.appendChild(s);
+          setTimeout(function(){s.remove()},800);
+        }
+        // 更新计数
+        unlocked++;
+        document.getElementById('stats').innerHTML='已获得 <strong>'+unlocked+'</strong> / '+total+' 枚徽章'+(unlocked>=total?' 🎉 全部集齐！':'');
+        // 清除首页通知点
+        if(JSON.parse(localStorage.getItem('sci_pending')||'[]').length===0){
+          try{document.getElementById('badge-dot').classList.remove('on')}catch(e){}
+        }
+      };
+    }
+
+    grid.appendChild(card);
+  });
+});
+
+document.getElementById('stats').innerHTML=
+  '已获得 <strong>'+unlocked+'</strong> / '+total+' 枚徽章'+
+  (unlocked>=total?' 🎉 全部集齐！':(pending.length>0?' · <span style="color:#c08020">'+pending.length+'枚待解锁</span>':''));
+if(unlocked===0&&pending.length===0)document.getElementById('stats').innerHTML+='<br><span style="font-size:12px">完成闯关模式即可解锁徽章</span>';
+
+// BGM开关
+function toggleBGM(){
+  const a=document.getElementById('bgm'),btn=document.getElementById('bgm-btn');
+  if(a.paused){a.play();btn.textContent='♫';btn.classList.remove('muted')}
+  else{a.pause();btn.textContent='♪';btn.classList.add('muted')}
+}
+</script>
+</body>
+</html>

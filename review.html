@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>错题复习 - 科学闯关岛</title>
+<style>
+@font-face{font-family:'PxFont';src:url('JinzisheBianzheng-Regular.ttf') format('truetype');}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft YaHei','SimHei','PingFang SC',sans-serif;background:#fef9f0;min-height:100vh;color:#4a3020;-webkit-font-smoothing:antialiased}
+.top{display:flex;align-items:center;gap:12px;padding:14px 16px;background:#fffdf6;border-bottom:3px solid #c8b898;position:sticky;top:0;z-index:10}
+.back-btn{width:40px;height:40px;border:2px solid #c8b898;background:#fdf6ed;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 rgba(120,90,50,.12);color:#4a3020}
+.unit-info{flex:1}.unit-name{font-size:22px;font-weight:700}.unit-desc{font-size:13px;color:#8a7060}
+.stats{padding:14px 16px;text-align:center;font-size:14px;color:#8a7060;background:#fdf6ed;border-bottom:2px solid rgba(0,0,0,.04)}
+.stats strong{color:#d4a020;font-size:20px}
+.main{max-width:700px;margin:0 auto;padding:16px}
+/* 题目 */
+.quiz{background:#e8e0d0;border:3px solid #b0a080;padding:20px;margin-bottom:16px;box-shadow:3px 3px 0 rgba(80,50,20,.15);transition:background .6s,border-color .6s}
+.quiz.solved{background:#f0f8e8!important;border-color:#90c060!important}
+.quiz-header{display:flex;justify-content:space-between;margin-bottom:10px;font-size:13px;color:#8a7060}
+.quiz-q{font-size:18px;font-weight:700;margin-bottom:14px;line-height:1.6}
+.quiz-opts{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{padding:12px 16px;border:2px solid #d8c8a8;background:#fdf6ed;font-size:16px;cursor:pointer;text-align:left;font-family:inherit;color:#4a3020;transition:all .1s}
+.quiz-opt:hover{background:#fef5e0;border-color:#c8a860}
+.quiz-opt.chosen{pointer-events:none}
+.quiz-opt.correct{background:#c8e8b0!important;border-color:#78a848!important;color:#386020!important}
+.quiz-opt.wrong{background:#f0c8b8!important;border-color:#c87858!important;color:#803020!important}
+.feedback{padding:12px 14px;margin-top:12px;font-size:15px;font-weight:700;display:none}
+.fb-ok{display:block;background:#e0f0d0;border:2px solid #90c060;color:#407020}
+.fb-no{display:block;background:#f8e0d0;border:2px solid #d89870;color:#803020}
+.next-btn{display:none;margin-top:12px;text-align:center}
+.next-btn.show{display:block}
+.btn{padding:12px 28px;border:2px solid #c8b898;background:#e0b860;color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:2px 2px 0 rgba(120,90,50,.15);transition:all .1s}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 rgba(120,90,50,.2)}
+.btn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 rgba(120,90,50,.15)}
+.btn.secondary{background:#fdf6ed;color:#4a3020}
+/* 空状态 */
+.empty{text-align:center;padding:60px 20px}
+.empty-icon{font-size:80px;margin-bottom:16px}
+.empty-title{font-size:28px;font-weight:700;margin-bottom:8px}
+.empty-text{font-size:18px;color:#8a7060;margin-bottom:24px;line-height:2}
+.level-badge{display:inline-block;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:700;margin-left:8px}
+.level-badge.l0{background:#f8e0d0;color:#c05030}
+.level-badge.l1{background:#fef5e0;color:#c08030}
+.level-badge.l2{background:#e8f0d8;color:#608030}
+</style>
+</head>
+<body>
+<audio id="bgm" src="Spring_Wild_Horseradish_Jam.mp3" autoplay loop volume="0.18"></audio>
+<script>(function(){var a=document.getElementById('bgm');var t=parseFloat(localStorage.getItem('bgm_t')||'0');if(t>0)a.currentTime=t;a.play();setInterval(function(){localStorage.setItem('bgm_t',a.currentTime)},300);window.addEventListener('beforeunload',function(){localStorage.setItem('bgm_t',a.currentTime)});})();</script>
+<div class="top">
+  <button class="back-btn" onclick="history.back()">←</button>
+  <div class="unit-info"><div class="unit-name">📝 错题复习</div><div class="unit-desc">间隔重复 · 科学记忆</div></div>
+</div>
+<div class="stats" id="stats"></div>
+<div class="main" id="main"></div>
+
+<script>
+// ==================== 音效 ====================
+const AC=new(window.AudioContext||window.webkitAudioContext)();
+function playTone(freq,dur,type,vol,delay){
+  const o=AC.createOscillator(),g=AC.createGain();
+  o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,AC.currentTime+delay);
+  g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+delay+dur);
+  o.connect(g);g.connect(AC.destination);o.start(AC.currentTime+delay);o.stop(AC.currentTime+delay+dur);
+}
+function sfxCorrect(){AC.resume();playTone(660,.1,'square',.1,0);playTone(880,.15,'square',.1,.08)}
+function sfxWrong(){AC.resume();for(var i=0;i<4;i++)playTone(400-i*100,.08,'square',.1,i*.06)}
+
+// ==================== SM-2 间隔复习 ====================
+const INTERVALS=[1,3,7,14]; // 天数：1天后→3天后→7天后→14天后→毕业
+
+function getDueQuestions(){
+  const all=JSON.parse(localStorage.getItem('sci_review')||'[]');
+  const today=new Date().toDateString();
+  return all.filter(q=>new Date(q.next)<=new Date(today));
+}
+
+function updateReviewItem(item,correct){
+  if(correct){
+    item.lvl++;
+    if(item.lvl>=INTERVALS.length){
+      // 毕业——从队列中移除
+      return 'graduate';
+    }
+    const days=INTERVALS[item.lvl];
+    const d=new Date();d.setDate(d.getDate()+days);
+    item.next=d.toDateString();
+    return 'promote';
+  }else{
+    item.lvl=0;
+    item.next=new Date().toDateString(); // 今天继续复习
+    return 'reset';
+  }
+}
+
+function saveReviewQueue(items){
+  const all=JSON.parse(localStorage.getItem('sci_review')||'[]');
+  // 更新修改过的项，移除毕业的项，保留未修改的项
+  const updatedIds=new Set(items.map(q=>q.q+'-'+q.uid+'-'+q.t));
+  const rest=all.filter(q=>!updatedIds.has(q.q+'-'+q.uid+'-'+q.t));
+  const result=[...rest,...items.filter(q=>q.lvl<INTERVALS.length)];
+  localStorage.setItem('sci_review',JSON.stringify(result));
+}
+
+// ==================== 单元名称 ====================
+const UNAMES={s4a1:'动物王国',s4a2:'运动竞技',s4a3:'力学工坊',s4a4:'电路实验室',s3b1:'植物乐园',s3b2:'声音探秘',s3b3:'材料工坊',s3b4:'气象站'};
+
+// ==================== 渲染 ====================
+const dueQs=getDueQuestions();
+const allQs=JSON.parse(localStorage.getItem('sci_review')||'[]');
+document.getElementById('stats').innerHTML=`
+  待复习 <strong>${dueQs.length}</strong> 题 · 总计 <strong>${allQs.length}</strong> 题待毕业
+  · 已毕业 <strong>${JSON.parse(localStorage.getItem('sci_review_graduate')||'0')}</strong> 题
+`;
+
+const main=document.getElementById('main');
+if(dueQs.length===0){
+  // 检查是否有过答题记录
+  var prog=JSON.parse(localStorage.getItem('sci_prog')||'{}');
+  var hasAnswered=false;
+  for(var k in prog){if(prog[k]&&(prog[k].c>0||prog[k].s>0)){hasAnswered=true;break}}
+
+  if(!hasAnswered){
+    // 从未答过题
+    main.innerHTML=`
+      <div class="empty">
+        <div class="empty-icon">📭</div>
+        <div class="empty-title">还没有错题记录</div>
+        <div class="empty-text">
+          错题本里空空如也——说明你还没开始答题呢！<br>
+          去闯关模式做题吧，答错的题目会自动加入复习队列。<br>
+          连续答对3次同一道题，它就能从这里"毕业"。
+        </div>
+        <a class="btn" href="index.html">🏠 回首页</a>
+      </div>`;
+  }else if(allQs.length===0){
+    // 答过题但零错题——全部正确！
+    main.innerHTML=`
+      <div class="empty">
+        <div class="empty-icon">🏆</div>
+        <div class="empty-title">太厉害了，全部正确！</div>
+        <div class="empty-text">
+          你答过的所有题目都是对的，一道错题都没有！<br>
+          继续保持这个状态，你就是科学小达人～<br><br>
+          去闯关模式挑战更多题目吧。
+        </div>
+        <a class="btn" href="index.html">🏠 回首页</a>
+      </div>`;
+  }else{
+    // 全部毕业
+    main.innerHTML=`
+      <div class="empty">
+        <div class="empty-icon">🎉</div>
+        <div class="empty-title">今天没有待复习的错题！</div>
+        <div class="empty-text">
+          所有错题都已按计划复习完毕。<br>
+          做错的题目会在1天后自动出现在复习队列中，<br>
+          连续答对3次即可"毕业"。<br><br>
+          去闯关模式做新题，答错的题会自动加入复习队列。
+        </div>
+        <a class="btn" href="index.html">🏠 回首页</a>
+      </div>`;
+  }
+}else{
+  let qi=0,results=[];
+  showQ();
+
+  function showQ(){
+    if(qi>=dueQs.length){showComplete();return}
+    const q=dueQs[qi];
+    main.innerHTML=`
+      <div class="quiz">
+        <div class="quiz-header">
+          <span>${UNAMES[q.uid]||''}</span>
+          <span>第${qi+1}/${dueQs.length}题 · <span class="level-badge l${q.lvl}">Lv.${q.lvl}</span></span>
+        </div>
+        <div class="quiz-q">${q.q}</div>
+        <div class="quiz-opts" id="opts">${q.o.map((o,i)=>`<button class="quiz-opt" data-idx="${i}">${'ABCD'[i]}. ${o}</button>`).join('')}</div>
+        <div class="feedback" id="fb"></div>
+        <div class="next-btn" id="next"><button class="btn">下一题 →</button></div>
+      </div>
+    `;
+    const btns=document.querySelectorAll('.quiz-opt');
+    const fb=document.getElementById('fb');
+    btns.forEach(b=>{b.onclick=function(){
+      btns.forEach(bb=>bb.classList.add('chosen'));
+      const idx=parseInt(this.dataset.idx);
+      if(idx===q.a){this.classList.add('correct');fb.className='feedback fb-ok';fb.innerHTML='✅ 正确！'+(q.e?'<br><span style="font-size:13px;font-weight:400;margin-top:4px;display:inline-block">📖 '+q.e+'</span>':'');sfxCorrect();document.querySelector('.quiz').classList.add('solved');var r=updateReviewItem(q,true);results.push({item:q,result:'correct',action:r})}else{this.classList.add('wrong');btns[q.a].classList.add('correct');fb.className='feedback fb-no';fb.innerHTML='❌ 正确答案是 '+String.fromCharCode(65+q.a)+(q.e?'<br><span style="font-size:13px;font-weight:400;margin-top:4px;display:inline-block">📖 '+q.e+'</span>':'');sfxWrong();var r=updateReviewItem(q,false);results.push({item:q,result:'wrong',action:r})}
+      document.getElementById('next').className='next-btn show';
+    }});
+    document.getElementById('next').querySelector('button').onclick=()=>{qi++;showQ()};
+  }
+
+  function showComplete(){
+    saveReviewQueue(dueQs);
+    const correct=results.filter(r=>r.result==='correct').length;
+    const graduates=results.filter(r=>r.action==='graduate').length;
+    // 保存毕业计数
+    const prevGrad=parseInt(localStorage.getItem('sci_review_graduate')||'0');
+    localStorage.setItem('sci_review_graduate',prevGrad+graduates);
+
+    main.innerHTML=`
+      <div style="text-align:center;padding:40px 20px">
+        <div style="font-size:56px;margin-bottom:12px">📝</div>
+        <div style="font-size:24px;font-weight:700;margin-bottom:8px">复习完成！</div>
+        <div style="font-size:15px;color:#8a7060;margin-bottom:8px">答对 ${correct}/${results.length} 题</div>
+        ${graduates>0?`<div style="font-size:14px;color:#608030;margin-bottom:12px">🎓 ${graduates} 题已毕业！</div>`:''}
+        <div style="font-size:13px;color:#a09080;margin-bottom:20px;line-height:1.8">
+          ${results.map(r=>`${r.result==='correct'?'✅':'❌'} ${r.item.q.slice(0,30)}... → ${r.action==='graduate'?'🎓毕业':r.action==='promote'?'⬆升级':'🔄重来'}`).join('<br>')}
+        </div>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+          <a class="btn" href="review.html">🔄 再检查一遍</a>
+          <a class="btn secondary" href="index.html">🏠 回首页</a>
+        </div>
+      </div>`;
+  }
+}
+</script>
+</body>
+</html>

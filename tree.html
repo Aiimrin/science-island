@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>知识树 - 科学闯关岛</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Microsoft YaHei','SimHei','PingFang SC',sans-serif;
+  background:#fef9f0;overflow:hidden;height:100vh;height:100dvh;
+  -webkit-font-smoothing:antialiased;
+}
+.top{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fffdf6;border-bottom:3px solid #c8b898;z-index:10;position:relative}
+.back-btn{width:38px;height:38px;border:2px solid #c8b898;background:#fdf6ed;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 rgba(120,90,50,.12);color:#4a3020;border-radius:4px}
+.unit-select{flex:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.unit-tab{padding:7px 14px;border:2px solid #d8c8a8;background:#fdf6ed;font-size:13px;cursor:pointer;font-family:inherit;color:#4a3020;border-radius:4px;white-space:nowrap;transition:all .15s}
+.unit-tab:hover{background:#fef5e0;border-color:#c8a860}
+.unit-tab.active{background:#e0b860;color:#fff;border-color:#c89840}
+/* 思维导图容器 */
+#mindmap{flex:1;width:100%;height:calc(100vh - 58px)}
+#mindmap svg{width:100%;height:100%}
+/* markmap 样式覆盖——暖色调 */
+#mindmap .markmap-node circle{fill:#e0b860!important;stroke:#c89840!important}
+#mindmap .markmap-node text{fill:#4a3020!important;font-family:'Microsoft YaHei','SimHei','PingFang SC',sans-serif!important}
+#mindmap .markmap-link{stroke:#d8c8a8!important}
+#mindmap .markmap-foreign{font-family:'Microsoft YaHei','SimHei','PingFang SC',sans-serif!important;color:#4a3020!important}
+/* 提示 */
+.tip{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:8px 18px;background:rgba(0,0,0,.65);color:#fff;font-size:13px;border-radius:20px;pointer-events:none;z-index:20;opacity:0;transition:opacity .5s}
+.tip.show{opacity:1}
+</style>
+</head>
+<body>
+<audio id="bgm" src="Spring_Wild_Horseradish_Jam.mp3" autoplay loop volume="0.18"></audio>
+<script>(function(){var a=document.getElementById('bgm');var t=parseFloat(localStorage.getItem('bgm_t')||'0');if(t>0)a.currentTime=t;a.play();setInterval(function(){localStorage.setItem('bgm_t',a.currentTime)},300);window.addEventListener('beforeunload',function(){localStorage.setItem('bgm_t',a.currentTime)});})();</script>
+<div class="top">
+  <button class="back-btn" onclick="history.back()">←</button>
+  <div class="unit-select" id="tabs"></div>
+</div>
+<div id="mindmap"></div>
+<div class="tip" id="tip">🖱️ 滚轮缩放 · 拖拽平移 · 点击节点折叠</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-view@0.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-lib@0.17"></script>
+<script>
+// ==================== 知识树内容（Markdown） ====================
+const TREES={
+s4a1:
+`# 🐾 动物王国
+## 动物分类
+### 根据有无脊椎分为两大类
+### 脊椎动物：青蛙、鲨鱼、猴、鸟
+### 无脊椎动物：蚊虫、蜗牛、水母、蚯蚓
+### 脊椎的作用：支撑、保护内脏、负重减震
+### 我国珍稀动物：大熊猫、金丝猴、扬子鳄
+## 鱼类
+### 本质特征：用鳃呼吸、用鳍运动
+### 尾鳍提供前进动力
+### 胸鳍配合尾鳍决定方向
+### 变温脊椎动物
+### 水流：口→鳃→鳃盖流出→气体交换
+## 鸟类
+### 三大特征：羽毛、恒温、卵生
+### 正羽：防水、助飞行（羽管中空减重）
+### 绒羽：细小柔软、保温
+### 喙和足适应生活环境和食性
+## 哺乳类
+### 特征：有毛、恒温、胎生、哺乳
+### 皮毛保温，皮下脂肪保温+供能
+### 鲸鱼是哺乳类不是鱼类
+### 恒温是鸟和哺乳类区别于其他动物的特征
+## 珍稀动物
+### 朱鹮：珍稀脊椎动物（鸟类）
+### 大熊猫：中国国宝
+### 《野生动物保护法》保护珍稀动物`,
+
+s4a2:
+`# 🏎️ 运动竞技
+## 运动与位置
+### 参照物：判断运动的标准
+### 位置描述：方向+距离
+### 运动是绝对的，静止是相对的
+### 同一物体选不同参照物，运动状态可能不同
+### "两岸青山相对出"→以船为参照物
+## 运动形式
+### 直线运动：苹果落地、电梯
+### 曲线运动：风车旋转、铅球抛物线
+### 摆动：秋千、钟摆
+### 旋转木马：绕圈+上下=复合运动
+### 多数运动是复合运动
+## 运动快慢
+### 速度=路程÷时间
+### 比较方法一：相同时间比路程
+### 比较方法二：相同路程比时间
+### 声音速度≈340米/秒
+### 光速≈3亿米/秒
+### 速度越大→冲击力越大→禁高空抛物`,
+
+s4a3:
+`# ⚡ 力学工坊
+## 力与运动
+### 力改变物体运动状态
+### 拉力越大→小车前进越快
+### 对比实验要控制变量
+## 弹力
+### 弹性：撤去外力后恢复原状的性质
+### 弹性限度内，拉力与伸长量成正比
+### 弹簧测力计：测力的大小
+### 力的单位：牛顿（N）
+### 使用前调零，读数时视线与指针齐平
+## 摩擦力
+### 接触面阻碍运动的力
+### 大小与粗糙程度和质量有关
+### 增大摩擦：加深花纹、抹镁粉、防滑链
+### 减小摩擦：润滑油、冰壶刷冰、流线型
+### 鲸鱼流线型→减小水的阻力
+## 浮力
+### 方向：竖直向上（与重力相反）
+### 水中物体不论沉浮都受浮力
+### 体积相同→质量小易上浮
+### 质量相同→体积大易上浮
+### 生沉熟浮：饺子煮熟体积变大→浮力变大`,
+
+s4a4:
+`# 💡 电路实验室
+## 电路组成
+### 四要素：电源、用电器、导线、开关
+### 连正极(+)和负极(-)→闭合回路→灯泡亮
+### 短路：导线直连正负极→电池发热爆炸！
+### 画电路图：起点正极，终点负极
+## 导体与绝缘体
+### 导体：铁钉、铅笔芯、硬币、盐水、人体
+### 绝缘体：塑料尺、橡皮、瓷勺、玻璃
+### 导电排序：纯净水<自来水<淡盐水<浓盐水
+### 铅笔芯导电但不同型号差异大
+### 电工把手用绝缘体保护安全
+## 电路暗箱
+### 检测器：电池+导线+灯泡
+### 自检后再检测，每次测3次
+### 灯泡变亮→暗箱有电池
+### 灯泡变暗→暗箱有用电器
+## 生活中的电
+### 直流电：电池（电动车、遥控器）
+### 交流电：发电厂（电灯、冰箱）
+### 水果电池：铜片(+)锌片(-)插入酸性水果
+### 安全用电：不湿手、远离高压线`,
+
+s3b1:
+`# 🌱 植物乐园
+## 种子发芽
+### 三条件：水分、空气、适宜温度
+### 阳光不是必需条件（黑暗中也能发芽）
+### 不同种子形状颜色各异
+### 番茄：水滴形、黄色；黄瓜：橄榄形
+## 根茎叶（营养器官）
+### 根：吸收水分+养料、固定植株
+### 茎：输送水分和养料（插入红水→变红）
+### 叶：光合作用制造养料
+## 开花传粉
+### 两性花：雌雄同花（番茄花）
+### 单性花：雌雄分花（黄瓜花）
+### 虫媒花：鲜艳有香气（桃花）
+### 风媒花：花粉多而轻（玉米花）
+### 人工辅助授粉：黄瓜、丝瓜
+## 植物结果（繁殖器官）
+### 果实=果皮+种子
+### 可食用部位：胡萝卜(根)、土豆(茎)、白菜(叶)
+### 植物一生：发芽→长大→开花→结果→死亡
+## 环境适应
+### 仙人掌：叶退化成刺，减少水分蒸发
+### 水葫芦：叶柄气囊储存气体，漂浮水面
+### 莲：叶柄和茎中空管道，输送氧气
+### 青苔：假根只起固定作用`,
+
+s3b2:
+`# 🔊 声音探秘
+## 声音产生
+### 声音由物体振动产生
+### 振动停止→声音消失
+### 敲击音叉靠水花证明振动
+### 哺乳动物：声带发声
+### 鸟类：鸣管发声
+### 昆虫：翅膀摩擦/振动发声
+## 声音传播
+### 需要介质，能在固/液/气中传播
+### 真空中不能传声（月球上听不到）
+### 固体传声效果最好（贴桌听挠声）
+### 耳朵结构：耳郭→外耳道→鼓膜→听小骨→耳蜗→听神经
+## 耳朵结构
+### 耳郭：收集声波
+### 鼓膜：声波引起振动
+### 听小骨：放大振动
+### 耳蜗：转化为神经信号
+### 保护听力：远离噪声、不挖耳、不长时间戴耳机
+## 音调与音量
+### 音量=强弱，取决于振动幅度
+### 音调=高低，取决于物体长短松紧
+### 越短越薄越紧→音调越高
+### 噪声：让人不舒服的声音，环境污染`,
+
+s3b3:
+`# 🧱 材料工坊
+## 天然与人造
+### 天然：棉花、木材、羊毛、石料
+### 人造：纸、玻璃、塑料、陶瓷
+### 棉花吸水性强，腈纶棉吸水性弱
+### 燃烧法鉴别：棉花→粉末灰，腈纶→硬块
+## 纸
+### 四大发明之一·东汉蔡伦
+### 原料：树皮、麻绳头、破布、旧渔网
+### 不同纸吸水性、结实度不同
+### 牛皮纸结实不吸水，宣纸吸水不结实
+## 金属
+### 共性：有光泽、导热、有延展性
+### 铜：紫红色；铁：银白色；铝：轻且软
+### 合金优于单质金属（青铜=铜+锡）
+### 不锈钢、铝合金都是合金
+## 塑料
+### 优点：轻、防水、结实、便宜
+### 缺点：不易降解→白色污染
+### 减少污染：少用、重复用、回收、可降解塑料`,
+
+s3b4:
+`# 🌈 气象站
+## 测量气温
+### 气温计：单位摄氏度（℃）
+### 百叶箱五原则
+### ①百叶窗式通风
+### ②涂白漆反射阳光
+### ③架在草坪上减少反射
+### ④箱门朝北避免阳光直射
+### ⑤箱底离地1.5米
+### 水泥地>草地，阳光下>背阴处
+## 云量与雨量
+### 云量分三档：晴天<1/4、多云1/4~3/4、阴天>3/4
+### 雨量器测降雨量，单位毫米
+### 24小时降雨量判断等级
+### 降水过多→洪涝，过少→干旱
+## 风向与风力
+### 风向：风吹来的方向（不是吹去的方向）
+### 东风=从东方吹来的风
+### 风级歌0-12级
+### 风的好处：传种、航海、发电
+### 龙卷风和台风是自然灾害
+## 天气与气候
+### 天气：短期变化，无规律
+### 气候：长期特征，有规律
+### "明天大风"→天气；"四季如春"→气候
+### 不同气候→不同动植物`};
+
+// ==================== 初始化 ====================
+const params=new URLSearchParams(location.search);
+let uid=params.get('unit')||'s4a4';
+
+function renderMindmap(id){
+  const md=TREES[id];
+  if(!md)return;
+  const {Transformer}=window.markmap;
+  const {Markmap}=window.markmap;
+  const transformer=new Transformer();
+  const {root,features}=transformer.transform(md);
+  const {styles,scripts}=transformer.getUsedAssets(features);
+
+  document.getElementById('mindmap').innerHTML='';
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('id','markmap-svg');
+  document.getElementById('mindmap').appendChild(svg);
+
+  const mm=Markmap.create(svg,null,root);
+  mm.fit(); // 自适应缩放
+}
+
+// 渲染标签页
+const tabsDiv=document.getElementById('tabs');
+const ULABELS={s4a1:'🐾动物',s4a2:'🏎️运动',s4a3:'⚡力学',s4a4:'💡电路',s3b1:'🌱植物',s3b2:'🔊声音',s3b3:'🧱材料',s3b4:'🌈气象'};
+Object.entries(ULABELS).forEach(([id,label])=>{
+  const btn=document.createElement('button');
+  btn.className='unit-tab'+(id===uid?' active':'');
+  btn.textContent=label;
+  btn.onclick=()=>{uid=id;renderTabs();renderMindmap(id)};
+  tabsDiv.appendChild(btn);
+});
+
+function renderTabs(){
+  tabsDiv.querySelectorAll('.unit-tab').forEach(b=>{
+    const u=Object.entries(ULABELS).find(([k])=>b.textContent===ULABELS[k]);
+    b.classList.toggle('active',u&&u[0]===uid);
+  });
+}
+
+// 首次加载
+renderMindmap(uid);
+
+// 操作提示
+const tip=document.getElementById('tip');
+tip.classList.add('show');
+setTimeout(()=>tip.classList.remove('show'),4000);
+</script>
+</body>
+</html>

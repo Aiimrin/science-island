@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>实验室 - 科学闯关岛</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft YaHei','SimHei','PingFang SC',sans-serif;background:#1a1a1a;overflow:hidden;height:100vh;height:100dvh;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none}
+.top{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#2a2a28;border-bottom:2px solid #4a4840;z-index:10;position:relative;flex-wrap:wrap}
+.back-btn{width:34px;height:34px;border:2px solid #5a5850;background:#3a3830;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#c8c0b0}
+.unit-name{font-size:22px;font-weight:700;color:#e8d8b0;flex:1;min-width:120px}
+.unit-desc{font-size:13px;color:#8a8070;width:100%}
+.top-btn{padding:6px 14px;border:2px solid #5a5850;background:#3a3830;color:#c8c0b0;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.top-btn:hover{background:#4a4840;color:#e8d8b0}
+.top-btn.active{background:#5a5040;border-color:#c89840;color:#e8d8b0}
+.workspace{display:flex;height:calc(100vh - 64px)}
+.tray{width:150px;background:#252520;border-right:2px solid #3a3830;padding:10px 8px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.tray-item{padding:18px 8px;background:#302e28;border:2px solid #4a4840;text-align:center;cursor:pointer;font-size:15px;color:#c8c0b0;transition:all .2s cubic-bezier(.34,1.56,.64,1)}
+.tray-item:hover{border-color:#8a8060;background:#383630;transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.tray-item:active{transform:scale(.92);transition:all .08s}
+.tray-item .icon{font-size:44px;display:block;margin-bottom:4px;pointer-events:none;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+.tray-item:hover .icon{transform:scale(1.15)}
+.bench{flex:1;position:relative;background:linear-gradient(180deg,#303028 0%,#282820 100%);overflow:hidden}
+.bench-grid{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.03) 1px,transparent 1px);background-size:24px 24px;pointer-events:none}
+#bc{position:absolute;inset:0}
+.hint{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);padding:8px 20px;background:rgba(0,0,0,.75);color:#a09880;font-size:15px;border-radius:6px;pointer-events:none;transition:all .3s;white-space:nowrap;z-index:6}
+.hint.ok{color:#b8d8a0}.hint.warn{background:rgba(200,60,30,.7);color:#f8d8d0}
+.del-hint{position:absolute;bottom:52px;left:50%;transform:translateX(-50%);padding:3px 12px;background:rgba(0,0,0,.5);color:rgba(255,255,255,.25);font-size:11px;border-radius:4px;pointer-events:none;z-index:5}
+.wire-hint{position:absolute;top:12px;right:16px;padding:4px 12px;background:rgba(0,0,0,.6);color:#c89840;font-size:12px;border-radius:4px;pointer-events:none;z-index:5}
+.modal-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s,background .35s}
+.modal-overlay.active{opacity:1;pointer-events:auto;background:rgba(0,0,0,.55);backdrop-filter:blur(3px)}
+.modal{background:#2a2820;border:3px solid #6a6050;padding:24px 20px;max-width:360px;width:92%;color:#d8d0c0;transform:scale(.7) translateY(30px);transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+.modal-overlay.active .modal{transform:scale(1) translateY(0)}
+.modal h3{font-size:20px;margin-bottom:12px;text-align:center}
+.modal p{font-size:14px;line-height:1.8;margin-bottom:16px;text-align:center}
+.modal .btn{display:block;margin:0 auto;padding:10px 28px;border:2px solid #c89840;background:#5a4830;color:#e8d8b0;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:transform .15s,box-shadow .15s}
+.modal .btn:hover{transform:scale(1.05);box-shadow:0 0 20px rgba(200,152,64,.3)}
+@media(max-width:640px){.tray{width:110px}.tray-item{padding:12px 4px;font-size:13px}.tray-item .icon{font-size:32px}}
+.k-btn{position:fixed;bottom:20px;left:20px;width:44px;height:44px;border:2px solid #c89840;background:rgba(42,40,32,.9);font-size:22px;cursor:pointer;z-index:50;display:none;align-items:center;justify-content:center;box-shadow:2px 2px 0 rgba(0,0,0,.3);transition:all .2s;color:#e8d8b0}
+.k-btn.show{display:flex}.k-btn:hover{transform:scale(1.1);box-shadow:0 0 20px rgba(200,152,64,.4)}
+</style>
+</head>
+<body>
+<audio id="bgm" src="Spring_Wild_Horseradish_Jam.mp3" autoplay loop volume="0.18"></audio>
+<script>(function(){var a=document.getElementById('bgm');var t=parseFloat(localStorage.getItem('bgm_t')||'0');if(t>0)a.currentTime=t;a.play();setInterval(function(){localStorage.setItem('bgm_t',a.currentTime)},300);window.addEventListener('beforeunload',function(){localStorage.setItem('bgm_t',a.currentTime)});})();</script>
+
+<div class="top">
+  <button class="back-btn" onclick="history.back()">←</button>
+  <div class="unit-name" id="uname">💡 电路实验室</div>
+  <button class="top-btn active" id="btn-s4a4" onclick="switchUnit('s4a4')">💡电路</button>
+  <button class="top-btn" id="btn-s4a3" onclick="switchUnit('s4a3')">⚡力学</button>
+  <button class="top-btn" id="btn-s4a1" onclick="switchUnit('s4a1')">🐾动物</button>
+  <button class="top-btn" onclick="clearBench()">🗑清空</button>
+  <div class="unit-desc" id="udesc">四年级上册 · 第四单元</div>
+</div>
+<div class="workspace">
+  <div class="tray" id="tray"></div>
+  <div class="bench"><div class="bench-grid"></div><canvas id="bc"></canvas>
+    <div class="wire-hint" id="wire-hint">🟡 金色连线 = 导线</div>
+    <div class="del-hint" id="del-hint">🖱️ 右键删除 · 双击删除连线</div>
+    <div class="hint" id="hint"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-overlay"><div class="modal" id="modal"></div></div>
+<button class="k-btn" id="k-btn" onclick="showKnowledge()" title="查看知识点">📖</button>
+
+<script>
+// ==================== 实验室定义 ====================
+const LABS={
+s4a4:{name:'电路实验室',desc:'四年级上册 · 第四单元',icon:'💡',
+  tray:[
+    {id:'battery',icon:'🔋',label:'电池',w:120,h:70,color:'#80a860',term:[{x:.06,y:.5},{x:.94,y:.5}]},
+    {id:'bulb',icon:'💡',label:'灯泡',w:84,h:96,color:'#e8d8a0',term:[{x:.5,y:.06},{x:.5,y:.94}]},
+    {id:'switch',icon:'🔘',label:'开关',w:96,h:52,color:'#a0a0a0',term:[{x:.06,y:.5},{x:.94,y:.5}],sw:true},
+  ]
+},
+s4a3:{name:'力学工坊',desc:'四年级上册 · 第三单元',icon:'⚡',
+  tray:[
+    {id:'spring',label:'弹簧测力',icon:'〰️',w:320,h:210,color:'#c0c0c0',exp:'spring'},
+    {id:'buoyancy',label:'浮力实验',icon:'🌊',w:340,h:200,color:'#60a0d0',exp:'buoyancy'},
+    {id:'friction',label:'摩擦实验',icon:'📐',w:340,h:170,color:'#c89860',exp:'friction'},
+  ]
+},
+s4a1:{name:'动物王国',desc:'四年级上册 · 第一单元',icon:'🐾',tray:[]},
+};
+
+// ==================== 状态 ====================
+const p=new URLSearchParams(location.search);
+let uid=p.get('unit')||'s4a4',lab=LABS[uid];
+let items=[],wires=[],sel=null,bGlow=0,wasLit=false,ks=false,mechDone=false;
+let dragIdx=-1,dragOX=0,dragOY=0,dragType='move',dragSX=0,dragSY=0,dragSw=null;
+
+// Canvas
+const cv=document.getElementById('bc'),ctx=cv.getContext('2d');
+let W,H;function rs(){W=cv.width=cv.parentElement.clientWidth;H=cv.height=cv.parentElement.clientHeight}
+rs();window.addEventListener('resize',rs);
+
+// ==================== 绘制 ====================
+function draw(){
+  ctx.clearRect(0,0,W,H);ctx.imageSmoothingEnabled=false;
+  ctx.strokeStyle='rgba(255,255,255,.04)';ctx.lineWidth=1;
+  for(let x=0;x<W;x+=48)for(let y=0;y<H;y+=48)ctx.strokeRect(x,y,48,48);
+
+  items.forEach((bi,i)=>{
+    const t=bi.trayItem;
+    if(t.exp){drawExp(bi);return} // 力学实验由专用函数渲染
+    // 电路组件
+    ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(bi.x+2,bi.y+2,t.w,t.h);
+    ctx.fillStyle='#3a3830';ctx.fillRect(bi.x-1,bi.y-1,t.w+2,t.h+2);
+    ctx.fillStyle=t.color+'44';ctx.fillRect(bi.x,bi.y,t.w,t.h);
+    ctx.strokeStyle=t.color;ctx.lineWidth=2;ctx.strokeRect(bi.x,bi.y,t.w,t.h);
+    if(t.sw){ctx.fillStyle=bi.closed===false?'rgba(255,100,80,.5)':'rgba(100,255,130,.5)';ctx.fillRect(bi.x,bi.y,t.w,t.h)}
+    ctx.fillStyle='#fff';ctx.font='36px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(t.icon,bi.x+t.w/2,bi.y+t.h/2);
+    ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='13px "Microsoft YaHei",sans-serif';ctx.textAlign='center';
+    ctx.fillText(t.label+(t.sw?(bi.closed===false?' OFF':' ON'):''),bi.x+t.w/2,bi.y+t.h-10);
+    t.term.forEach((tm,ti)=>{
+      const tx=bi.x+tm.x*t.w,ty=bi.y+tm.y*t.h;
+      ctx.fillStyle=(sel&&sel.i===i&&sel.ti===ti)?'#f0d050':'#c89840';ctx.beginPath();ctx.arc(tx,ty,5,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#8a6830';ctx.lineWidth=1;ctx.stroke();
+    });
+  });
+  // 连线
+  wires.forEach(w=>{
+    const fa=items[w.a.i],fb=items[w.b.i];if(!fa||!fb)return;
+    const ta=fa.trayItem,tb=fb.trayItem;
+    const ax=fa.x+ta.term[w.a.ti].x*ta.w,ay=fa.y+ta.term[w.a.ti].y*ta.h;
+    const bx=fb.x+tb.term[w.b.ti].x*tb.w,by=fb.y+tb.term[w.b.ti].y*tb.h;
+    ctx.strokeStyle='#c89840';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();
+    ctx.fillStyle='#e0c860';ctx.beginPath();ctx.arc(ax,ay,3,0,Math.PI*2);ctx.fill();ctx.arc(bx,by,3,0,Math.PI*2);ctx.fill();
+  });
+  // 灯泡发光
+  if(bGlow>0)items.forEach(bi=>{if(bi.trayItem.id!=='bulb')return;
+    const cx=bi.x+bi.trayItem.w/2,cy=bi.y+bi.trayItem.h/2;
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,55);g.addColorStop(0,'rgba(255,248,200,.5)');g.addColorStop(.5,'rgba(255,240,180,.25)');g.addColorStop(1,'transparent');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,55,0,Math.PI*2);ctx.fill();
+  });
+}
+
+// 力学实验渲染
+function drawExp(bi){
+  const t=bi.trayItem,x=bi.x,y=bi.y,w=t.w,h=t.h;
+  ctx.fillStyle='#2a2822';ctx.fillRect(x-2,y-2,w+4,h+4);
+  ctx.strokeStyle='#5a5850';ctx.lineWidth=2;ctx.strokeRect(x-2,y-2,w+4,h+4);
+  ctx.fillStyle='#3a3830';ctx.fillRect(x,y,w,26);
+  ctx.fillStyle='#e8d8b0';ctx.font='bold 16px "Microsoft YaHei",sans-serif';ctx.textAlign='left';
+  ctx.fillText(t.icon+' '+t.label,x+10,y+20);
+  const done=isExpDone(bi);
+  if(done){ctx.fillStyle='#7cc058';ctx.font='bold 13px "Microsoft YaHei",sans-serif';ctx.textAlign='right';ctx.fillText('● 已完成',x+w-10,y+19)}
+  else{let goal='';if(t.exp==='spring'){goal='目标 '+(bi.weights||0)+'/4 N';}else if(t.exp==='buoyancy'){const pld=bi.pld||[];const ww=pld.some(p=>p.icon==='🌲木'),ii=pld.some(p=>p.icon==='⚙️铁'),pp=pld.some(p=>p.icon==='🧩塑');goal='目标 '+(ww?'🌲':'○')+' '+(ii?'⚙️':'○')+' '+(pp?'🧩':'○');}else if(t.exp==='friction'){const td=bi._tried||[0],t0=td.indexOf(0)!==-1,t1=td.indexOf(1)!==-1,t2=td.indexOf(2)!==-1;goal='目标 '+(t0?'冰':'○')+' '+(t1?'木':'○')+' '+(t2?'砂':'○');}ctx.fillStyle='rgba(255,255,255,.45)';ctx.font='12px "Microsoft YaHei",sans-serif';ctx.textAlign='right';ctx.fillText(goal,x+w-10,y+20)}
+  if(t.exp==='spring')springDraw(bi);
+  if(t.exp==='buoyancy')buoyDraw(bi);
+  if(t.exp==='friction')fricDraw(bi);
+}
+function springDraw(bi){const t=bi.trayItem,x=bi.x,y=bi.y,w=t.w,h=t.h,cx=x+w/2,anchor=y+36,st=40+(bi._animSt||0),bot=anchor+st;ctx.strokeStyle='#a0a0a0';ctx.lineWidth=4;ctx.beginPath();for(let i=0;i<=8;i++){const px=cx+(i%2?10:-10),py=anchor+(bot-anchor)/8*i;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py)}ctx.stroke();ctx.fillStyle='#888';ctx.fillRect(cx-2,bot,4,8);const n=(bi.weights||0);for(let w=0;w<n;w++){ctx.fillStyle=['#888','#777','#999','#7a7a7a','#8a8a8a'][w%5];ctx.fillRect(cx-13,bot+6+w*7,26,6);ctx.strokeStyle='#555';ctx.lineWidth=.5;ctx.strokeRect(cx-13,bot+6+w*7,26,6)}const wbot=bot+6+n*7;ctx.fillStyle='#c0c0c0';ctx.font='bold 16px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.fillText(n+' N',cx,wbot+16);const bx=cx-36,by=wbot+28,bw=28;ctx.fillStyle='#4a8a38';ctx.fillRect(bx,by,bw,bw);ctx.fillStyle='#c04030';ctx.fillRect(bx+44,by,bw,bw);ctx.fillStyle='#fff';ctx.font='bold 18px sans-serif';ctx.fillText('+',bx+bw/2,by+bw/2+6);ctx.fillText('-',bx+44+bw/2,by+bw/2+6);bi._b={x1:bx,y1:by,x2:bx+44,y2:by,w:bw,h:bw};ctx.fillStyle='rgba(255,255,255,.25)';ctx.font='12px "Microsoft YaHei",sans-serif';ctx.fillText('点击 +/- 增减砝码',cx,by+bw+14);if(n>=4)ctx.fillText('弹性限度内：拉力与伸长成正比！',cx,by+bw+28)}
+function buoyDraw(bi){const t=bi.trayItem,x=bi.x,y=bi.y,w=t.w,h=t.h,tw=w-20,th=h-62,tx=x+10,ty=y+46;ctx.fillStyle='#306898';ctx.fillRect(tx,ty,tw,th);ctx.fillStyle='rgba(100,180,240,.25)';ctx.fillRect(tx,ty+4,tw,th-4);ctx.strokeStyle='#5088b0';ctx.lineWidth=2;ctx.strokeRect(tx,ty,tw,th);ctx.fillStyle='rgba(255,255,255,.1)';ctx.fillRect(tx,ty+th*.25,tw,2);const objs=[{id:'w',icon:'🌲',label:'木块',sink:false,clr:'#c89860'},{id:'i',icon:'⚙️',label:'铁球',sink:true,clr:'#707070'},{id:'p',icon:'🧩',label:'塑料',sink:false,clr:'#d8d090'}];const ox=tx+10,oy=ty+th+8;objs.forEach((o,i)=>{const px=ox+i*100;ctx.fillStyle='#3a3830';ctx.fillRect(px,oy,90,30);ctx.strokeStyle=o.clr;ctx.lineWidth=1.5;ctx.strokeRect(px,oy,90,30);ctx.fillStyle='#fff';ctx.font='14px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.fillText(o.icon+' '+o.label,px+45,oy+21);bi['_'+o.id]={x:px,y:oy,w:90,h:30}});if(bi.pld)bi.pld.forEach(p=>{const py=p.sink?ty+th-28:ty+12+Math.sin(performance.now()*0.005+p.idx*2.1)*3;ctx.fillStyle=p.clr||(p.sink?'#606060':'#c89860');ctx.fillRect(tx+15+p.idx*44,py,28,28);ctx.fillStyle='#fff';ctx.font='10px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.fillText(p.icon,tx+29+p.idx*44,py+17)});if(!bi.pld||bi.pld.length===0){ctx.fillStyle='rgba(255,255,255,.12)';ctx.font='13px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.fillText('👆 点击下方物体放入水池',tx+tw/2,ty+th/2)}}
+function fricDraw(bi){const t=bi.trayItem,x=bi.x,y=bi.y,w=t.w,h=t.h,tw=w-20,tx=x+10;const sf=bi.surface||0,names=['光滑表面 (冰面)','普通表面 (木板)','粗糙表面 (砂纸)'],clrs=['#c8d8e8','#c8b898','#a09078'];ctx.fillStyle='#3a3830';ctx.fillRect(tx,y+34,tw,28);const bw=28;ctx.fillStyle='#5a8a40';ctx.fillRect(tx+6,y+36,bw,bw);ctx.fillStyle='#c85840';ctx.fillRect(tx+38,y+36,bw,bw);ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('<',tx+6+bw/2,y+36+bw/2+5);ctx.fillText('>',tx+38+bw/2,y+36+bw/2+5);ctx.fillStyle='#d8d0c0';ctx.font='15px "Microsoft YaHei",sans-serif';ctx.fillText('当前：'+names[sf],tx+tw/2,y+52);bi._sf={x1:tx+6,y1:y+36,x2:tx+38,y2:y+36,w:bw,h:bw};const sy=y+70,sh=42;ctx.fillStyle=clrs[sf];ctx.fillRect(tx,sy,tw,sh);ctx.strokeStyle='#8a7a60';ctx.lineWidth=2;ctx.strokeRect(tx,sy,tw,sh);const sl=bi.slideX||0,sx=tx+8+sl,ss=30;ctx.fillStyle='#d08050';ctx.fillRect(sx,sy+6,ss,ss);ctx.strokeStyle='#a06030';ctx.lineWidth=1.5;ctx.strokeRect(sx,sy+6,ss,ss);ctx.fillStyle='#fff';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText('推→',sx+ss/2,sy+6+ss/2+4);ctx.fillStyle='rgba(255,255,255,.25)';ctx.font='13px "Microsoft YaHei",sans-serif';ctx.fillText('切换表面后，向右拖滑块感受摩擦',tx+tw/2,sy+sh+18)}
+
+// ==================== 电路检测 ====================
+function check(){
+  wasLit=false;bGlow=0;
+  const bats=items.map((bi,i)=>({bi,i})).filter(x=>x.bi.trayItem.id==='battery');
+  const bulbs=items.map((bi,i)=>({bi,i})).filter(x=>x.bi.trayItem.id==='bulb');
+  if(bats.length===0){hint('💡 点击左侧添加电池','');return}
+  if(bulbs.length===0){hint('💡 还需要一个灯泡','');return}
+  if(wires.length===0){hint('💡 点击金色端子连接电路','');return}
+  const nodeKey=(i,ti)=>i*100+ti,adj=new Map();
+  function addEdge(n1,n2){if(!adj.has(n1))adj.set(n1,[]);if(!adj.has(n2))adj.set(n2,[]);adj.get(n1).push(n2);adj.get(n2).push(n1)}
+  wires.forEach(w=>{addEdge(nodeKey(w.a.i,w.a.ti),nodeKey(w.b.i,w.b.ti))});
+  items.forEach((bi,i)=>{const t=bi.trayItem;if(t.sw&&bi.closed!==false&&t.term.length>=2)addEdge(nodeKey(i,0),nodeKey(i,1))});
+  const b0=bats[0],n0=nodeKey(b0.i,0),n1=nodeKey(b0.i,1);
+  if(adj.has(n0)&&adj.get(n0).some(n=>n===n1)){hint('⚡ 短路！电池两极直连！','warn');return}
+  function reach(from){const v=new Set(),q=[from];v.add(from);while(q.length){const c=q.shift();(adj.get(c)||[]).forEach(n=>{if(!v.has(n)){v.add(n);q.push(n)}})}return v}
+  const rp=reach(n0),rn=reach(n1);let ok=false;
+  for(let b of bulbs){const t0=nodeKey(b.i,0),t1=nodeKey(b.i,1);if((rp.has(t0)&&rn.has(t1))||(rp.has(t1)&&rn.has(t0))){ok=true;break}}
+  if(!ok){let swBlocked=false;items.forEach((bi,i)=>{if(bi.trayItem.sw&&bi.closed===false){bi.closed=true;const tmp=new Map();function ta(n1,n2){if(!tmp.has(n1))tmp.set(n1,[]);if(!tmp.has(n2))tmp.set(n2,[]);tmp.get(n1).push(n2);tmp.get(n2).push(n1)}wires.forEach(w=>{ta(nodeKey(w.a.i,w.a.ti),nodeKey(w.b.i,w.b.ti))});items.forEach((bj,j)=>{const t2=bj.trayItem;if(t2.sw&&bj.closed!==false&&t2.term.length>=2)ta(nodeKey(j,0),nodeKey(j,1))});bi.closed=false;function tr(from){const v=new Set(),q=[from];v.add(from);while(q.length){const c=q.shift();(tmp.get(c)||[]).forEach(n=>{if(!v.has(n)){v.add(n);q.push(n)}})}return v}const tp=tr(n0),tn=tr(n1);for(let b of bulbs){const t0=nodeKey(b.i,0),t1=nodeKey(b.i,1);if((tp.has(t0)&&tn.has(t1))||(tp.has(t1)&&tn.has(t0))){swBlocked=true}}}});if(swBlocked){hint('🔘 电路已接好，但开关是断开的——点击开关闭合它！','');return}hint('⚡ 电路未连接完整——用金色导线连接电池→开关→灯泡→电池','');return}
+  if(!wasLit){if(!ks){ks=true;sfxLight()}showK()}wasLit=true;bGlow=1;hint('✨ 闭合回路！灯泡亮了！','ok');
+}
+
+function hint(msg,type){const e=document.getElementById('hint');e.textContent=msg;e.className='hint'+(type?' '+type:'')}
+
+// 音效+弹窗
+const AC=new(window.AudioContext||window.webkitAudioContext)();
+function sfxLight(){AC.resume();[523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>{const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.15,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.2);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.2)},i*80))}
+function showK(){document.getElementById('modal').innerHTML='<h3>💡 电路知识要点</h3><p><b>闭合回路</b>：电流从电池正极(+)出发，<br>经过导线→用电器→回到电池负极(-)，<br>形成完整的闭合回路，灯泡才会亮。</p><p><b>开关的作用</b>：控制电路的通断。<br>闭合开关=电路通=灯泡亮；<br>断开开关=电路断=灯泡灭。</p><p><b>短路</b>：导线直接连接电池两极，<br>电流不走用电器，会导致电池发热甚至爆炸！</p><button class="btn" onclick="document.getElementById(\'modal-overlay\').classList.remove(\'active\')">知道啦 👍</button>';document.getElementById('modal-overlay').classList.add('active');document.getElementById('k-btn').classList.add('show')}
+
+function isExpDone(bi){const t=bi.trayItem;if(t.exp==='spring')return(bi.weights||0)>=4;if(t.exp==='buoyancy'){if(!bi.pld||bi.pld.length<3)return false;return new Set(bi.pld.map(p=>p.icon)).size>=3}if(t.exp==='friction')return new Set(bi._tried||[0]).size>=3;return false}
+function sfxMech(){AC.resume();[440,554,659,880,1109].forEach((f,i)=>setTimeout(()=>{const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.12,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.25);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.25)},i*70))}function showMechK(){document.getElementById('modal').innerHTML='<h3>⚡ 力学知识要点</h3><p><b>弹力（胡克定律）</b>：在弹性限度内，<br>弹簧的伸长量与所受拉力成正比。<br>拉力越大，弹簧伸得越长。</p><p><b>浮力与密度</b>：物体密度 < 液体密度 → 上浮；<br>物体密度 > 液体密度 → 下沉；<br>物体密度 = 液体密度 → 悬浮。</p><p><b>摩擦力</b>：接触面越粗糙，摩擦力越大；<br>接触面越光滑，摩擦力越小。<br>摩擦力阻碍物体相对运动。</p><button class="btn" onclick="document.getElementById(\'modal-overlay\').classList.remove(\'active\')">知道啦 👍</button>';document.getElementById('modal-overlay').classList.add('active');document.getElementById('k-btn').classList.add('show')}
+
+// ==================== 交互 ====================
+// 托盘点击
+document.getElementById('tray').addEventListener('click',e=>{
+  const it=e.target.closest('.tray-item');if(!it)return;
+  const t=lab.tray.find(x=>x.id===it.dataset.id);if(!t)return;
+  const nx=t.exp?Math.max(10,W/2-t.w/2):40+Math.random()*200;
+  const ny=t.exp?20+items.filter(x=>x.trayItem.exp).length*210:40+Math.random()*200;
+  items.push({trayItem:t,x:nx,y:ny,closed:t.sw?false:undefined,weights:0,surface:0,slideX:0,pld:null,_animSt:0,_animV:0,_slideTarget:0,_tried:[0]});
+  document.getElementById('del-hint').style.display='block';
+  if(uid==='s4a4')check();draw();
+});
+
+// Canvas 交互
+cv.addEventListener('mousedown',e=>{
+  const mx=e.offsetX,my=e.offsetY;
+  // 力学按钮
+  if(uid==='s4a3'){
+    for(let i=items.length-1;i>=0;i--){
+      const bi=items[i],t=bi.trayItem;
+      if(t.exp==='spring'&&bi._b){
+        const b=bi._b;if(mx>=b.x1&&mx<=b.x1+b.w&&my>=b.y1&&my<=b.y1+b.h){bi.weights=Math.min(5,(bi.weights||0)+1);bi._animV+=5;hint('拉力 '+(bi.weights||0)+'N —— 弹簧伸长量与拉力成正比','ok');draw();return}
+        if(mx>=b.x2&&mx<=b.x2+b.w&&my>=b.y2&&my<=b.y2+b.h){bi.weights=Math.max(0,(bi.weights||0)-1);bi._animV-=4;hint(bi.weights>0?'拉力 '+(bi.weights||0)+'N':'弹簧恢复原长','');draw();return}
+      }
+      if(t.exp==='buoyancy'){
+        ['w','i','p'].forEach((oid,j)=>{const ob=bi['_'+oid];if(ob&&mx>=ob.x&&mx<=ob.x+ob.w&&my>=ob.y&&my<=ob.y+ob.h){if(!bi.pld)bi.pld=[];const icons=['🌲木','⚙️铁','🧩塑'],clrs=['#c89860','#707070','#e8d8a0'],sinks=[false,true,false];bi.pld.push({idx:bi.pld.length,icon:icons[j],sink:sinks[j],clr:clrs[j]});hint(sinks[j]?icons[j]+'沉入水底——密度大于水':icons[j]+'浮在水面——密度小于水','ok');draw();return}});
+      }
+      if(t.exp==='friction'){
+        const b=bi._sf||{x1:bi.x+16,y1:bi.y+36,x2:bi.x+48,w:28,h:28};
+        if(mx>=b.x1&&mx<=b.x1+b.w&&my>=b.y1&&my<=b.y1+b.h){bi.surface=Math.max(0,(bi.surface||0)-1);bi.slideX=0;bi._slideTarget=0;if(!bi._tried)bi._tried=[];if(bi._tried.indexOf(bi.surface)===-1)bi._tried.push(bi.surface);hint('切换到：'+['光滑(冰面)','普通(木板)','粗糙(砂纸)'][bi.surface],'');draw();return}
+        if(mx>=b.x2&&mx<=b.x2+b.w&&my>=b.y2&&my<=b.y2+b.h){bi.surface=Math.min(2,(bi.surface||0)+1);bi.slideX=0;bi._slideTarget=0;if(!bi._tried)bi._tried=[];if(bi._tried.indexOf(bi.surface)===-1)bi._tried.push(bi.surface);hint('切换到：'+['光滑(冰面)','普通(木板)','粗糙(砂纸)'][bi.surface],'');draw();return}
+        if(mx>=bi.x+10&&mx<=bi.x+t.w-10&&my>=bi.y+70&&my<=bi.y+110){dragIdx=i;dragOX=mx-(bi.slideX||0);dragType='slide';cv.style.cursor='ew-resize';return}
+      }
+    }
+    // 力学拖拽
+    for(let i=items.length-1;i>=0;i--){const bi=items[i],t=bi.trayItem;if(mx>=bi.x&&mx<=bi.x+t.w&&my>=bi.y&&my<=bi.y+t.h){dragIdx=i;dragOX=mx-bi.x;dragOY=my-bi.y;dragType='move';cv.style.cursor='grabbing';return}}
+    return;
+  }
+  // 电路：端子检测
+  for(let i=0;i<items.length;i++){const bi=items[i],t=bi.trayItem;for(let ti=0;ti<t.term.length;ti++){const tx=bi.x+t.term[ti].x*t.w,ty=bi.y+t.term[ti].y*t.h;if(Math.abs(mx-tx)<16&&Math.abs(my-ty)<16){if(sel&&sel.i===i&&sel.ti===ti){sel=null;draw();return}if(sel){const dup=wires.find(w=>(w.a.i===sel.i&&w.a.ti===sel.ti&&w.b.i===i&&w.b.ti===ti)||(w.a.i===i&&w.a.ti===ti&&w.b.i===sel.i&&w.b.ti===sel.ti));if(!dup)wires.push({a:{i:sel.i,ti:sel.ti},b:{i,ti}});sel=null;check();draw();return}sel={i,ti};draw();return}}}
+  // 开关切换
+  let swC=null;for(let i=items.length-1;i>=0;i--){const bi=items[i];if(bi.trayItem.sw&&mx>=bi.x&&mx<=bi.x+bi.trayItem.w&&my>=bi.y&&my<=bi.y+bi.trayItem.h){swC=i;break}}
+  sel=null;
+  // 拖拽
+  for(let i=items.length-1;i>=0;i--){const bi=items[i],t=bi.trayItem;if(mx>=bi.x&&mx<=bi.x+t.w&&my>=bi.y&&my<=bi.y+t.h){dragIdx=i;dragOX=mx-bi.x;dragOY=my-bi.y;dragSX=mx;dragSY=my;dragSw=swC;cv.style.cursor='grabbing';const it=items.splice(i,1)[0];items.push(it);dragIdx=items.length-1;draw();return}}
+  draw();
+});
+cv.addEventListener('mousemove',e=>{if(dragIdx<0)return;if(dragType==='slide'){const raw=Math.max(0,Math.min(240,e.offsetX-dragOX));const bi=items[dragIdx];bi._slideTarget=raw;const s=bi.surface||0;const msgs=['光滑表面摩擦力很小！','普通表面摩擦力适中','粗糙表面摩擦力很大！'];hint(raw>40?msgs[s]:'向右拖动滑块...',raw>40?'ok':'');draw();return}items[dragIdx].x=e.offsetX-dragOX;items[dragIdx].y=e.offsetY-dragOY;if(uid==='s4a4')check();draw()});
+cv.addEventListener('mouseup',e=>{if(dragSw!==null&&dragIdx>=0&&Math.abs(e.offsetX-dragSX)<4&&Math.abs(e.offsetY-dragSY)<4){const bi=items[dragIdx];if(bi.trayItem.sw){bi.closed=!bi.closed;check();draw()}}dragIdx=-1;dragSw=null;dragType='move';cv.style.cursor='default'});
+cv.addEventListener('mouseleave',()=>{dragIdx=-1;dragType='move';cv.style.cursor='default'});
+cv.addEventListener('dblclick',e=>{const mx=e.offsetX,my=e.offsetY;for(let i=wires.length-1;i>=0;i--){const w=wires[i],fa=items[w.a.i],fb=items[w.b.i];if(!fa||!fb)continue;const ta=fa.trayItem,tb=fb.trayItem;const ax=fa.x+ta.term[w.a.ti].x*ta.w,ay=fa.y+ta.term[w.a.ti].y*ta.h,bx=fb.x+tb.term[w.b.ti].x*tb.w,by=fb.y+tb.term[w.b.ti].y*tb.h;if(Math.abs(mx-(ax+bx)/2)<12&&Math.abs(my-(ay+by)/2)<12){wires.splice(i,1);check();draw();return}}});
+cv.addEventListener('contextmenu',e=>{e.preventDefault();const mx=e.offsetX,my=e.offsetY;for(let i=items.length-1;i>=0;i--){const bi=items[i],t=bi.trayItem;if(mx>=bi.x&&mx<=bi.x+t.w&&my>=bi.y&&my<=bi.y+t.h){wires=wires.filter(w=>w.a.i!==i&&w.b.i!==i);wires.forEach(w=>{if(w.a.i>i)w.a.i--;if(w.b.i>i)w.b.i--});items.splice(i,1);sel=null;if(uid==='s4a4')check();draw();return}}});
+
+// ==================== 切换/清空 ====================
+function renderLab(){document.getElementById('tray').innerHTML=lab.tray.map(t=>`<div class="tray-item" data-id="${t.id}"><span class="icon">${t.icon}</span>${t.label}</div>`).join('');document.querySelectorAll('.top-btn[id^="btn-"]').forEach(b=>b.classList.remove('active'));const ab=document.getElementById('btn-'+uid);if(ab)ab.classList.add('active')}
+function showKnowledge(){if(uid==='s4a4')showK();else if(uid==='s4a3')showMechK()}function switchUnit(id){uid=id;lab=LABS[id];items=[];wires=[];sel=null;bGlow=0;ks=false;mechDone=false;dragType='move';document.getElementById('k-btn').classList.remove('show');renderLab();document.getElementById('uname').textContent=lab.icon+' '+lab.name;document.getElementById('udesc').textContent=lab.desc||'';document.getElementById('wire-hint').style.display=uid==='s4a4'?'block':'none';document.getElementById('del-hint').style.display='none';document.getElementById('hint').textContent=uid==='s4a4'?'💡 点击左侧器材→点击金色端子连线':'💡 点击左侧实验卡片→添加到工作台→点击卡片内按钮互动';if(uid==='s4a4')check();draw()}
+function clearBench(){items=[];wires=[];sel=null;bGlow=0;ks=false;dragType='move';document.getElementById('del-hint').style.display='none';if(uid==='s4a4')check();draw()}
+
+// ==================== 初始化 ====================
+renderLab();switchUnit(uid); // 确保 hint 正确设置
+
+function anim(){let nd=false;if(bGlow>0){bGlow=.8+.2*Math.sin(performance.now()*.005);nd=true}items.forEach(bi=>{const t=bi.trayItem;if(t.exp==='spring'){const target=(bi.weights||0)*22;bi._animV+=(target-bi._animSt)*.12;bi._animV*=.82;bi._animSt+=bi._animV;if(Math.abs(bi._animV)>.03||Math.abs(target-bi._animSt)>.2)nd=true}if(t.exp==='friction'){const target=bi._slideTarget!=null?bi._slideTarget:0;const spd=[.32,.16,.06][bi.surface||0];const prev=bi.slideX;bi.slideX+=(target-bi.slideX)*spd;if(Math.abs(bi.slideX-prev)>.1)nd=true}if(t.exp==='buoyancy')nd=true});if(uid==='s4a3'&&!mechDone){const expItems=items.filter(bi=>bi.trayItem.exp);if(expItems.length>=3&&expItems.every(bi=>isExpDone(bi))){if(!mechDone){mechDone=true;sfxMech();const labPr=JSON.parse(localStorage.getItem('sci_lab')||'{}');labPr[uid]={done:true};localStorage.setItem('sci_lab',JSON.stringify(labPr));setTimeout(showMechK,600)}}}if(nd)draw();requestAnimationFrame(anim)}
+requestAnimationFrame(anim);
+</script>
+</body>
+</html>
