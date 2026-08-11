@@ -85,24 +85,27 @@ s4a3:{name:'力学工坊',desc:'四年级上册 · 第三单元',icon:'⚡',
 s4a1:{name:'动物王国',desc:'四年级上册 · 第一单元',icon:'🐾',
   tray:[
     {id:'tiger',icon:'🐅',label:'老虎',w:80,h:55,cat:'mammal',animal:true},
-    {id:'dolphin',icon:'🐬',label:'海豚',w:80,h:55,cat:'mammal',animal:true},
-    {id:'sparrow',icon:'🐦',label:'麻雀',w:80,h:55,cat:'bird',animal:true},
-    {id:'eagle',icon:'🦅',label:'老鹰',w:80,h:55,cat:'bird',animal:true},
-    {id:'snake',icon:'🐍',label:'蛇',w:80,h:55,cat:'reptile',animal:true},
-    {id:'lizard',icon:'🦎',label:'蜥蜴',w:80,h:55,cat:'reptile',animal:true},
-    {id:'frog',icon:'🐸',label:'青蛙',w:80,h:55,cat:'amphibian',animal:true},
-    {id:'salamander',icon:'🦎',label:'蝾螈',w:80,h:55,cat:'amphibian',animal:true},
     {id:'goldfish',icon:'🐟',label:'金鱼',w:80,h:55,cat:'fish',animal:true},
+    {id:'sparrow',icon:'🐦',label:'麻雀',w:80,h:55,cat:'bird',animal:true},
+    {id:'frog',icon:'🐸',label:'青蛙',w:80,h:55,cat:'amphibian',animal:true},
+    {id:'panda',icon:'🐼',label:'大熊猫',w:80,h:55,cat:'mammal',animal:true,endangered:true},
+    {id:'snake',icon:'🐍',label:'蛇',w:80,h:55,cat:'reptile',animal:true},
+    {id:'eagle',icon:'🦅',label:'老鹰',w:80,h:55,cat:'bird',animal:true},
+    {id:'dolphin',icon:'🐬',label:'海豚',w:80,h:55,cat:'mammal',animal:true},
+    {id:'bee',icon:'🐝',label:'蜜蜂',w:80,h:55,cat:'insect',animal:true},
     {id:'shark',icon:'🦈',label:'鲨鱼',w:80,h:55,cat:'fish',animal:true},
+    {id:'lizard',icon:'🦎',label:'蜥蜴',w:80,h:55,cat:'reptile',animal:true},
+    {id:'penguin',icon:'🐧',label:'企鹅',w:80,h:55,cat:'bird',animal:true},
     {id:'butterfly',icon:'🦋',label:'蝴蝶',w:80,h:55,cat:'insect',animal:true},
+    {id:'turtle',icon:'🐢',label:'海龟',w:80,h:55,cat:'reptile',animal:true,endangered:true},
     {id:'ladybug',icon:'🐞',label:'瓢虫',w:80,h:55,cat:'insect',animal:true},
   ]
 },
 };
 
 // 动物分类数据
-const ANIMAL_CATS=[{id:'mammal',name:'哺乳类',icon:'🐾'},{id:'bird',name:'鸟类',icon:'🐦'},{id:'reptile',name:'爬行类',icon:'🦎'},{id:'amphibian',name:'两栖类',icon:'🐸'},{id:'fish',name:'鱼类',icon:'🐟'},{id:'insect',name:'昆虫类',icon:'🦋'}];
-function getBoxRects(){const cols=3,rows=2,bw=165,bh=100,gx=18,gy=16,tw=cols*bw+(cols-1)*gx,th=rows*bh+(rows-1)*gy,ox=(W-tw)/2,oy=Math.max(30,(H-th)/2);let r=[];for(let ri=0;ri<rows;ri++)for(let ci=0;ci<cols;ci++){const c=ANIMAL_CATS[ri*cols+ci];r.push({id:c.id,name:c.name,icon:c.icon,x:ox+ci*(bw+gx),y:oy+ri*(bh+gy),w:bw,h:bh})}return r}
+const ANIMAL_CATS=[{id:'mammal',name:'哺乳类'},{id:'bird',name:'鸟类'},{id:'reptile',name:'爬行类'},{id:'amphibian',name:'两栖类'},{id:'fish',name:'鱼类'},{id:'insect',name:'昆虫类'}];
+function getBoxRects(){const cols=3,rows=2,bw=230,bh=130,gx=20,gy=18,tw=cols*bw+(cols-1)*gx,th=rows*bh+(rows-1)*gy,ox=(W-tw)/2,oy=Math.max(30,(H-th)/2);let r=[];for(let ri=0;ri<rows;ri++)for(let ci=0;ci<cols;ci++){const c=ANIMAL_CATS[ri*cols+ci];r.push({id:c.id,name:c.name,x:ox+ci*(bw+gx),y:oy+ri*(bh+gy),w:bw,h:bh})}return r}
 function hitBox(mx,my){const boxes=getBoxRects();for(let b of boxes){if(mx>=b.x&&mx<=b.x+b.w&&my>=b.y&&my<=b.y+b.h)return b}return null}
 
 // ==================== 状态 ====================
@@ -122,7 +125,7 @@ function draw(){
   ctx.strokeStyle='rgba(255,255,255,.04)';ctx.lineWidth=1;
   for(let x=0;x<W;x+=48)for(let y=0;y<H;y+=48)ctx.strokeRect(x,y,48,48);
   // 动物王国：分类盒
-  if(uid==='s4a1'){const boxes=getBoxRects();let overBox=null;if(dragIdx>=0&&dragType==='animal'){const bi=items[dragIdx],t=bi.trayItem;overBox=hitBox(bi.x+t.w/2,bi.y+t.h/2)}boxes.forEach(b=>{ctx.fillStyle=b.id===overBox?.id?'rgba(120,180,80,.15)':'rgba(255,255,255,.03)';ctx.fillRect(b.x,b.y,b.w,b.h);ctx.strokeStyle=b.id===overBox?.id?'#80c060':'rgba(255,255,255,.15)';ctx.lineWidth=2;ctx.strokeRect(b.x,b.y,b.w,b.h);ctx.fillStyle='rgba(255,255,255,.35)';ctx.font='bold 15px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.fillText(b.icon+' '+b.name,b.x+b.w/2,b.y+22);ctx.fillStyle='rgba(255,255,255,.12)';ctx.font='11px "Microsoft YaHei",sans-serif';ctx.fillText('拖入此处',b.x+b.w/2,b.y+b.h-14);const placed=items.filter(bi=>bi.trayItem.animal&&bi.placed&&bi._boxId===b.id);if(placed.length>0){ctx.fillStyle='rgba(120,200,80,.15)';ctx.fillRect(b.x,b.y,b.w,b.h);ctx.strokeStyle='#80c060';ctx.strokeRect(b.x,b.y,b.w,b.h);placed.forEach(p=>{const t2=p.trayItem;ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(b.x+6+placed.indexOf(p)*68,b.y+b.h-28,62,24);ctx.fillStyle='#fff';ctx.font='12px "Microsoft YaHei",sans-serif';ctx.fillText(t2.icon+' '+t2.label,b.x+37+placed.indexOf(p)*68,b.y+b.h-12)})}})}
+  if(uid==='s4a1'){const boxes=getBoxRects();let overBox=null;if(dragIdx>=0&&dragType==='animal'){const bi=items[dragIdx],t=bi.trayItem;overBox=hitBox(bi.x+t.w/2,bi.y+t.h/2)}boxes.forEach(b=>{ctx.fillStyle=b.id===overBox?.id?'rgba(120,180,80,.2)':'rgba(255,255,255,.04)';ctx.fillRect(b.x,b.y,b.w,b.h);ctx.strokeStyle=b.id===overBox?.id?'#80c060':(b.placedCount>0?'rgba(120,200,80,.35)':'rgba(255,255,255,.18)');ctx.lineWidth=2;ctx.strokeRect(b.x,b.y,b.w,b.h);const placed=items.filter(bi=>bi.trayItem.animal&&bi.placed&&bi._boxId===b.id);b.placedCount=placed.length;ctx.fillStyle='rgba(255,255,255,.45)';ctx.font='bold 18px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.fillText(b.name,b.x+b.w/2,b.y+26);ctx.fillStyle='rgba(255,255,255,.1)';ctx.font='13px "Microsoft YaHei",sans-serif';ctx.fillText(placed.length>0?'已放入 '+placed.length+' 种':'将卡片拖入此处',b.x+b.w/2,b.y+b.h-12);placed.forEach((p,pi)=>{const t2=p.trayItem;ctx.fillStyle='rgba(0,0,0,.55)';const pw=Math.min(78,b.w/placed.length-4),px=b.x+4+pi*(pw+2);ctx.fillRect(px,b.y+b.h-38,pw,22);ctx.fillStyle='#fff';ctx.font='12px "Microsoft YaHei",sans-serif';ctx.fillText(t2.icon+' '+t2.label,px+pw/2,b.y+b.h-24)})})}
 
   items.forEach((bi,i)=>{
     const t=bi.trayItem;
@@ -162,7 +165,7 @@ function draw(){
 }
 
 // 动物卡片渲染
-function drawAnimal(bi,i){const t=bi.trayItem,x=bi.x+(bi._shakeX||0),y=bi.y,w=t.w,h=t.h,isDragging=dragIdx===i&&dragType==='animal';ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(x+2,y+2,w,h);ctx.fillStyle=isDragging?'#5a5040':(bi.placed?'#406030':'#3a3830');ctx.fillRect(x-1,y-1,w+2,h+2);if(bi.placed){ctx.strokeStyle='#80c060'}else{ctx.strokeStyle=isDragging?'#c89840':'#6a6050'}ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);ctx.fillStyle='#fff';ctx.font='28px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t.icon,x+w/2,y+20);ctx.fillStyle='rgba(255,255,255,.8)';ctx.font='12px "Microsoft YaHei",sans-serif';ctx.fillText(t.label,x+w/2,y+h-10);if(isDragging){ctx.fillStyle='rgba(200,152,64,.2)';ctx.fillRect(x-1,y-1,w+2,h+2)}}
+function drawAnimal(bi,i){if(bi.placed)return;const t=bi.trayItem,x=bi.x+(bi._shakeX||0),y=bi.y,w=t.w,h=t.h,isDragging=dragIdx===i&&dragType==='animal';ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(x+2,y+2,w,h);ctx.fillStyle=isDragging?'#5a5040':'#3a3830';ctx.fillRect(x-1,y-1,w+2,h+2);ctx.strokeStyle=isDragging?'#c89840':'#6a6050';ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);ctx.fillStyle='#fff';ctx.font='28px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t.icon,x+w/2,y+18);ctx.fillStyle='rgba(255,255,255,.8)';ctx.font='12px "Microsoft YaHei",sans-serif';ctx.fillText(t.label+(t.endangered?' 🔴':''),x+w/2,y+h-10);if(isDragging){ctx.fillStyle='rgba(200,152,64,.2)';ctx.fillRect(x-1,y-1,w+2,h+2)}}
 
 // 力学实验渲染
 function drawExp(bi){
@@ -214,7 +217,7 @@ function showK(){document.getElementById('modal').innerHTML='<h3>💡 电路知�
 
 function isExpDone(bi){const t=bi.trayItem;if(t.exp==='spring')return(bi.weights||0)>=4;if(t.exp==='buoyancy'){if(!bi.pld||bi.pld.length<3)return false;return new Set(bi.pld.map(p=>p.icon)).size>=3}if(t.exp==='friction')return new Set(bi._tried||[0]).size>=3;return false}
 function sfxMech(){AC.resume();[440,554,659,880,1109].forEach((f,i)=>setTimeout(()=>{const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.12,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.25);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.25)},i*70))}function showMechK(){document.getElementById('modal').innerHTML='<h3>⚡ 力学知识要点</h3><p><b>弹力（胡克定律）</b>：在弹性限度内，<br>弹簧的伸长量与所受拉力成正比。<br>拉力越大，弹簧伸得越长。</p><p><b>浮力与密度</b>：物体密度 < 液体密度 → 上浮；<br>物体密度 > 液体密度 → 下沉；<br>物体密度 = 液体密度 → 悬浮。</p><p><b>摩擦力</b>：接触面越粗糙，摩擦力越大；<br>接触面越光滑，摩擦力越小。<br>摩擦力阻碍物体相对运动。</p><button class="btn" onclick="document.getElementById(\'modal-overlay\').classList.remove(\'active\')">知道啦 👍</button>';document.getElementById('modal-overlay').classList.add('active');document.getElementById('k-btn').classList.add('show')}
-function showAniK(){document.getElementById('modal').innerHTML='<h3>🐾 动物分类知识要点</h3><p><b>六大动物类群</b><br>哺乳类：胎生、哺乳、体表有毛<br>鸟类：卵生、体表有羽毛、有喙无齿<br>爬行类：卵生、体表有鳞或甲、变温<br>两栖类：卵生、幼体水生、成体可陆生<br>鱼类：终生水生、用鳃呼吸<br>昆虫类：头胸腹三部分、三对足、两对翅</p><button class="btn" onclick="document.getElementById(\'modal-overlay\').classList.remove(\'active\')">知道啦 👍</button>';document.getElementById('modal-overlay').classList.add('active');document.getElementById('k-btn').classList.add('show')}
+function showAniK(){document.getElementById('modal').innerHTML='<h3>🐾 动物分类知识要点</h3><p><b>六大动物类群</b><br>哺乳类：胎生、哺乳、体表有毛<br>鸟类：卵生、有羽毛、有喙无齿<br>爬行类：卵生、有鳞或甲、变温<br>两栖类：卵生、幼体水生、成体可陆生<br>鱼类：终生水生、用鳃呼吸<br>昆虫类：头胸腹三部分、三对足</p><p><b>脊椎动物 vs 无脊椎动物</b><br>🔴 哺乳/鸟/爬行/两栖/鱼 = <b>脊椎动物</b>（有脊柱）<br>🔵 昆虫类 = <b>无脊椎动物</b>（无脊柱）</p><p>卡片带 🔴 = 濒危物种，需保护！<br>🐼大熊猫 🐢海龟 🦏犀牛</p><button class="btn" onclick="document.getElementById(\'modal-overlay\').classList.remove(\'active\')">知道啦 👍</button>';document.getElementById('modal-overlay').classList.add('active');document.getElementById('k-btn').classList.add('show')}
 
 // ==================== 交互 ====================
 // 托盘点击
@@ -222,7 +225,7 @@ document.getElementById('tray').addEventListener('click',e=>{
   const it=e.target.closest('.tray-item');if(!it)return;
   const t=lab.tray.find(x=>x.id===it.dataset.id);if(!t)return;
   let nx,ny;
-  if(t.animal){const ac=items.filter(bi=>bi.trayItem.animal&&!bi.placed).length;const cols=Math.max(2,Math.floor(W/95)),cw=90,gp=6,sx=Math.max(8,(W-cols*cw-(cols-1)*gp)/2);nx=sx+(ac%cols)*(cw+gp);ny=36+Math.floor(ac/cols)*62}
+  if(t.animal){const ac=items.filter(bi=>bi.trayItem.animal).length;nx=W/2-t.w/2+(ac%5-2)*16;ny=Math.max(20,H*.15)+(Math.floor(ac/5))*20}
   else if(t.exp){nx=Math.max(10,W/2-t.w/2);ny=20+items.filter(x=>x.trayItem.exp).length*210}
   else{nx=40+Math.random()*200;ny=40+Math.random()*200}
   items.push({trayItem:t,x:nx,y:ny,_ox:nx,_oy:ny,placed:false,_boxId:null,closed:t.sw?false:undefined,weights:0,surface:0,slideX:0,pld:null,_animSt:0,_animV:0,_slideTarget:0,_tried:[0],_shakeX:0,_shakeV:0});
@@ -267,7 +270,7 @@ cv.addEventListener('mousedown',e=>{
   draw();
 });
 cv.addEventListener('mousemove',e=>{if(dragIdx<0)return;if(dragType==='slide'){const raw=Math.max(0,Math.min(240,e.offsetX-dragOX));const bi=items[dragIdx];bi._slideTarget=raw;const s=bi.surface||0;const msgs=['光滑表面摩擦力很小！','普通表面摩擦力适中','粗糙表面摩擦力很大！'];hint(raw>40?msgs[s]:'向右拖动滑块...',raw>40?'ok':'');draw();return}if(dragType==='animal'){items[dragIdx].x=e.offsetX-dragOX;items[dragIdx].y=e.offsetY-dragOY;draw();return}items[dragIdx].x=e.offsetX-dragOX;items[dragIdx].y=e.offsetY-dragOY;if(uid==='s4a4')check();draw()});
-cv.addEventListener('mouseup',e=>{if(dragType==='animal'&&dragIdx>=0){const bi=items[dragIdx],t=bi.trayItem;const box=hitBox(bi.x+t.w/2,bi.y+t.h/2);if(box&&box.id===t.cat){bi.placed=true;bi._boxId=box.id;sfxLight();hint('✅ 正确！'+t.label+'属于'+box.name,'ok')}else if(box){bi._shakeV=8;sfxWrong();hint('❌ '+t.label+'不属于'+box.name+'，再想想！','warn')}else{bi.x=bi._ox;bi.y=bi._oy}}if(dragSw!==null&&dragIdx>=0&&Math.abs(e.offsetX-dragSX)<4&&Math.abs(e.offsetY-dragSY)<4){const bi=items[dragIdx];if(bi.trayItem.sw){bi.closed=!bi.closed;check();draw()}}dragIdx=-1;dragSw=null;dragType='move';cv.style.cursor='default';draw()});
+cv.addEventListener('mouseup',e=>{if(dragType==='animal'&&dragIdx>=0){const bi=items[dragIdx],t=bi.trayItem;const box=hitBox(bi.x+t.w/2,bi.y+t.h/2);if(box&&box.id===t.cat){bi.placed=true;bi._boxId=box.id;sfxLight();try{document.querySelector('.tray-item[data-id="'+t.id+'"]').style.opacity='.25'}catch(e){}hint('✅ 正确！'+t.label+'属于'+box.name,'ok')}else if(box){bi._shakeV=8;sfxWrong();hint('❌ '+t.label+'不属于'+box.name+'，再想想！','warn')}else{bi.x=bi._ox;bi.y=bi._oy}}if(dragSw!==null&&dragIdx>=0&&Math.abs(e.offsetX-dragSX)<4&&Math.abs(e.offsetY-dragSY)<4){const bi=items[dragIdx];if(bi.trayItem.sw){bi.closed=!bi.closed;check();draw()}}dragIdx=-1;dragSw=null;dragType='move';cv.style.cursor='default';draw()});
 cv.addEventListener('mouseleave',()=>{dragIdx=-1;dragType='move';cv.style.cursor='default'});
 cv.addEventListener('dblclick',e=>{const mx=e.offsetX,my=e.offsetY;for(let i=wires.length-1;i>=0;i--){const w=wires[i],fa=items[w.a.i],fb=items[w.b.i];if(!fa||!fb)continue;const ta=fa.trayItem,tb=fb.trayItem;const ax=fa.x+ta.term[w.a.ti].x*ta.w,ay=fa.y+ta.term[w.a.ti].y*ta.h,bx=fb.x+tb.term[w.b.ti].x*tb.w,by=fb.y+tb.term[w.b.ti].y*tb.h;if(Math.abs(mx-(ax+bx)/2)<12&&Math.abs(my-(ay+by)/2)<12){wires.splice(i,1);check();draw();return}}});
 cv.addEventListener('contextmenu',e=>{e.preventDefault();const mx=e.offsetX,my=e.offsetY;for(let i=items.length-1;i>=0;i--){const bi=items[i],t=bi.trayItem;if(mx>=bi.x&&mx<=bi.x+t.w&&my>=bi.y&&my<=bi.y+t.h){wires=wires.filter(w=>w.a.i!==i&&w.b.i!==i);wires.forEach(w=>{if(w.a.i>i)w.a.i--;if(w.b.i>i)w.b.i--});items.splice(i,1);sel=null;if(uid==='s4a4')check();draw();return}}});
@@ -275,12 +278,12 @@ cv.addEventListener('contextmenu',e=>{e.preventDefault();const mx=e.offsetX,my=e
 // ==================== 切换/清空 ====================
 function renderLab(){document.getElementById('tray').innerHTML=lab.tray.map(t=>`<div class="tray-item" data-id="${t.id}"><span class="icon">${t.icon}</span>${t.label}</div>`).join('');document.querySelectorAll('.top-btn[id^="btn-"]').forEach(b=>b.classList.remove('active'));const ab=document.getElementById('btn-'+uid);if(ab)ab.classList.add('active')}
 function showKnowledge(){if(uid==='s4a4')showK();else if(uid==='s4a3')showMechK();else if(uid==='s4a1')showAniK()}function switchUnit(id){uid=id;lab=LABS[id];items=[];wires=[];sel=null;bGlow=0;ks=false;mechDone=false;aniDone=false;dragType='move';document.getElementById('k-btn').classList.remove('show');renderLab();document.getElementById('uname').textContent=lab.icon+' '+lab.name;document.getElementById('udesc').textContent=lab.desc||'';document.getElementById('wire-hint').style.display=uid==='s4a4'?'block':'none';document.getElementById('del-hint').style.display='none';document.getElementById('hint').textContent=uid==='s4a4'?'💡 点击左侧器材→点击金色端子连线':'💡 点击左侧实验卡片→添加到工作台→点击卡片内按钮互动';if(uid==='s4a4')check();draw()}
-function clearBench(){items=[];wires=[];sel=null;bGlow=0;ks=false;aniDone=false;dragType='move';document.getElementById('del-hint').style.display='none';if(uid==='s4a4')check();draw()}
+function clearBench(){items=[];wires=[];sel=null;bGlow=0;ks=false;aniDone=false;dragType='move';document.getElementById('del-hint').style.display='none';document.querySelectorAll('.tray-item').forEach(el=>el.style.opacity='');if(uid==='s4a4')check();draw()}
 
 // ==================== 初始化 ====================
 renderLab();switchUnit(uid); // 确保 hint 正确设置
 
-function anim(){let nd=false;if(bGlow>0){bGlow=.8+.2*Math.sin(performance.now()*.005);nd=true}items.forEach(bi=>{const t=bi.trayItem;if(t.exp==='spring'){const target=(bi.weights||0)*22;bi._animV+=(target-bi._animSt)*.12;bi._animV*=.82;bi._animSt+=bi._animV;if(Math.abs(bi._animV)>.03||Math.abs(target-bi._animSt)>.2)nd=true}if(t.exp==='friction'){const target=bi._slideTarget!=null?bi._slideTarget:0;const spd=[.32,.16,.06][bi.surface||0];const prev=bi.slideX;bi.slideX+=(target-bi.slideX)*spd;if(Math.abs(bi.slideX-prev)>.1)nd=true}if(t.exp==='buoyancy')nd=true;if(t.animal&&!bi.placed&&dragIdx===-1){bi.x+=(bi._ox-bi.x)*.15;bi.y+=(bi._oy-bi.y)*.15;if(Math.abs(bi._ox-bi.x)>.3||Math.abs(bi._oy-bi.y)>.3)nd=true}if(t.animal&&bi._shakeV&&Math.abs(bi._shakeV)>.1){bi._shakeX+=bi._shakeV;bi._shakeV*=-.65;if(Math.abs(bi._shakeV)<.2){bi._shakeV=0;bi._shakeX=0;bi.x=bi._ox;bi.y=bi._oy}nd=true}});if(uid==='s4a3'&&!mechDone){const expItems=items.filter(bi=>bi.trayItem.exp);if(expItems.length>=3&&expItems.every(bi=>isExpDone(bi))){if(!mechDone){mechDone=true;sfxMech();const labPr=JSON.parse(localStorage.getItem('sci_lab')||'{}');labPr[uid]={done:true};localStorage.setItem('sci_lab',JSON.stringify(labPr));setTimeout(showMechK,600)}}}if(uid==='s4a1'&&!aniDone){const cards=items.filter(bi=>bi.trayItem.animal);if(cards.length>=12&&cards.every(bi=>bi.placed)){aniDone=true;sfxMech();const labPr=JSON.parse(localStorage.getItem('sci_lab')||'{}');labPr[uid]={done:true};localStorage.setItem('sci_lab',JSON.stringify(labPr));setTimeout(showAniK,600)}}if(nd)draw();requestAnimationFrame(anim)}
+function anim(){let nd=false;if(bGlow>0){bGlow=.8+.2*Math.sin(performance.now()*.005);nd=true}items.forEach(bi=>{const t=bi.trayItem;if(t.exp==='spring'){const target=(bi.weights||0)*22;bi._animV+=(target-bi._animSt)*.12;bi._animV*=.82;bi._animSt+=bi._animV;if(Math.abs(bi._animV)>.03||Math.abs(target-bi._animSt)>.2)nd=true}if(t.exp==='friction'){const target=bi._slideTarget!=null?bi._slideTarget:0;const spd=[.32,.16,.06][bi.surface||0];const prev=bi.slideX;bi.slideX+=(target-bi.slideX)*spd;if(Math.abs(bi.slideX-prev)>.1)nd=true}if(t.exp==='buoyancy')nd=true;if(t.animal&&!bi.placed&&dragIdx===-1){bi.x+=(bi._ox-bi.x)*.15;bi.y+=(bi._oy-bi.y)*.15;if(Math.abs(bi._ox-bi.x)>.3||Math.abs(bi._oy-bi.y)>.3)nd=true}if(t.animal&&bi._shakeV&&Math.abs(bi._shakeV)>.1){bi._shakeX+=bi._shakeV;bi._shakeV*=-.65;if(Math.abs(bi._shakeV)<.2){bi._shakeV=0;bi._shakeX=0;bi.x=bi._ox;bi.y=bi._oy}nd=true}});if(uid==='s4a3'&&!mechDone){const expItems=items.filter(bi=>bi.trayItem.exp);if(expItems.length>=3&&expItems.every(bi=>isExpDone(bi))){if(!mechDone){mechDone=true;sfxMech();const labPr=JSON.parse(localStorage.getItem('sci_lab')||'{}');labPr[uid]={done:true};localStorage.setItem('sci_lab',JSON.stringify(labPr));setTimeout(showMechK,600)}}}if(uid==='s4a1'&&!aniDone){const cards=items.filter(bi=>bi.trayItem.animal);const total=lab.tray.filter(t=>t.animal).length;if(cards.length>=total&&cards.every(bi=>bi.placed)){aniDone=true;sfxMech();const labPr=JSON.parse(localStorage.getItem('sci_lab')||'{}');labPr[uid]={done:true};localStorage.setItem('sci_lab',JSON.stringify(labPr));setTimeout(showAniK,600)}}if(nd)draw();requestAnimationFrame(anim)}
 requestAnimationFrame(anim);
 </script>
 </body>
