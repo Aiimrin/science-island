@@ -85,7 +85,7 @@ UNITS.forEach(u=>{
     const badgeKey=u.id+'-'+bt.id;
     const got=isUnlocked(u.id,bt.id);
     const isPending=pending.indexOf(badgeKey)!==-1;
-    if(got)unlocked++;
+    if(got&&!isPending)unlocked++;
 
     const card=document.createElement('div');
     card.className='badge-card'+(got?' unlocked':(isPending?' pending':' locked'));
