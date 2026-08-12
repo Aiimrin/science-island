@@ -221,8 +221,10 @@ function check(){
   wasLit=false;bGlow=0;
   const bats=items.map((bi,i)=>({bi,i})).filter(x=>x.bi.trayItem.id==='battery');
   const bulbs=items.map((bi,i)=>({bi,i})).filter(x=>x.bi.trayItem.id==='bulb');
+  const sws=items.map((bi,i)=>({bi,i})).filter(x=>x.bi.trayItem.sw);
   if(bats.length===0){hint('💡 点击左侧添加电池','');return}
   if(bulbs.length===0){hint('💡 还需要一个灯泡','');return}
+  if(sws.length===0){hint('💡 还需要一个开关（电池+灯泡+开关缺一不可）','');return}
   if(wires.length===0){hint('💡 点击金色端子连接电路','');return}
   const nodeKey=(i,ti)=>i*100+ti,adj=new Map();
   function addEdge(n1,n2){if(!adj.has(n1))adj.set(n1,[]);if(!adj.has(n2))adj.set(n2,[]);adj.get(n1).push(n2);adj.get(n2).push(n1)}
@@ -265,6 +267,7 @@ function showAniK(){document.getElementById('modal').innerHTML='<h3>🐾 动物�
 document.getElementById('tray').addEventListener('click',e=>{
   const it=e.target.closest('.tray-item');if(!it)return;
   const t=lab.tray.find(x=>x.id===it.dataset.id);if(!t)return;
+  if(uid==='s4a4'&&(t.id==='battery'||t.id==='bulb'||t.id==='switch')&&items.some(bi=>bi.trayItem.id===t.id)){hint('⚠️ '+t.label+'已经有一个了，先删除或直接使用它吧','warn');return}
   let nx,ny;
   if(t.animal){const ac=items.filter(bi=>bi.trayItem.animal).length;nx=W/2-t.w/2+(ac%5-2)*16;ny=Math.max(20,H*.15)+(Math.floor(ac/5))*20}
   else if(t.exp){nx=Math.max(10,W/2-t.w/2);ny=20+items.filter(x=>x.trayItem.exp).length*210}
