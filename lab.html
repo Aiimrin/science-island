@@ -238,7 +238,7 @@ function check(){
   const rp=reach(n0),rn=reach(n1);let ok=false;
   for(let b of bulbs){const t0=nodeKey(b.i,0),t1=nodeKey(b.i,1);if((rp.has(t0)&&rn.has(t1))||(rp.has(t1)&&rn.has(t0))){ok=true;break}}
   if(!ok){let swBlocked=false;items.forEach((bi,i)=>{if(bi.trayItem.sw&&bi.closed===false){bi.closed=true;const tmp=new Map();function ta(n1,n2){if(!tmp.has(n1))tmp.set(n1,[]);if(!tmp.has(n2))tmp.set(n2,[]);tmp.get(n1).push(n2);tmp.get(n2).push(n1)}wires.forEach(w=>{ta(nodeKey(w.a.i,w.a.ti),nodeKey(w.b.i,w.b.ti))});items.forEach((bj,j)=>{const t2=bj.trayItem;if(t2.sw&&bj.closed!==false&&t2.term.length>=2)ta(nodeKey(j,0),nodeKey(j,1))});bi.closed=false;function tr(from){const v=new Set(),q=[from];v.add(from);while(q.length){const c=q.shift();(tmp.get(c)||[]).forEach(n=>{if(!v.has(n)){v.add(n);q.push(n)}})}return v}const tp=tr(n0),tn=tr(n1);for(let b of bulbs){const t0=nodeKey(b.i,0),t1=nodeKey(b.i,1);if((tp.has(t0)&&tn.has(t1))||(tp.has(t1)&&tn.has(t0))){swBlocked=true}}}});if(swBlocked){hint('🔘 电路已接好，但开关是断开的——点击开关闭合它！','');return}hint('⚡ 电路未连接完整——用金色导线连接电池→开关→灯泡→电池','');return}
-  if(!wasLit){if(!ks){ks=true;sfxLight()}showK()}wasLit=true;bGlow=1;hint('✨ 闭合回路！灯泡亮了！','ok');
+  if(!wasLit){if(bbs.length>0){if(!bbKs){bbKs=true;sfxMech()}showBbK()}else{if(!ks){ks=true;sfxLight()}showK()}}wasLit=true;bGlow=1;hint('✨ 闭合回路！灯泡亮了！','ok');
 }
 
 function hint(msg,type){const e=document.getElementById('hint');e.textContent=msg;e.className='hint'+(type?' '+type:'')}
@@ -312,8 +312,8 @@ cv.addEventListener('mousedown',e=>{
   }
   // 暗箱按钮检测
   for(let i=items.length-1;i>=0;i--){const bi=items[i];if(!bi.trayItem.bb)continue;if(bi._rBtn&&mx>=bi._rBtn.x&&mx<=bi._rBtn.x+bi._rBtn.w&&my>=bi._rBtn.y&&my<=bi._rBtn.y+bi._rBtn.h){bi._revealed=!bi._revealed;sfxLight();if(!bbKs){bbKs=true;setTimeout(showBbK,400)}draw();return}if(bi._pBtn&&mx>=bi._pBtn.x&&mx<=bi._pBtn.x+bi._pBtn.w&&my>=bi._pBtn.y&&my<=bi._pBtn.y+bi._pBtn.h){const idx=(bi._bbIdx+1)%BB_CONFIGS.length;bi._bbIdx=idx;bi._links=BB_CONFIGS[idx].links;bi._revealed=false;sfxLight();hint('🎲 新谜题！试试找出内部连线','');check();draw();return}}
-  // 电路：端子检测
-  for(let i=0;i<items.length;i++){const bi=items[i],t=bi.trayItem;for(let ti=0;ti<t.term.length;ti++){const tx=bi.x+t.term[ti].x*t.w,ty=bi.y+t.term[ti].y*t.h;if(Math.abs(mx-tx)<22&&Math.abs(my-ty)<22){if(sel&&sel.i===i&&sel.ti===ti){sel=null;draw();return}if(sel){const dup=wires.find(w=>(w.a.i===sel.i&&w.a.ti===sel.ti&&w.b.i===i&&w.b.ti===ti)||(w.a.i===i&&w.a.ti===ti&&w.b.i===sel.i&&w.b.ti===sel.ti));if(!dup)wires.push({a:{i:sel.i,ti:sel.ti},b:{i,ti}});sel=null;check();draw();return}sel={i,ti};draw();return}}}
+  // 电路：端子检测（顶层优先）
+  for(let i=items.length-1;i>=0;i--){const bi=items[i],t=bi.trayItem;for(let ti=0;ti<t.term.length;ti++){const tx=bi.x+t.term[ti].x*t.w,ty=bi.y+t.term[ti].y*t.h;if(Math.abs(mx-tx)<18&&Math.abs(my-ty)<18){if(sel&&sel.i===i&&sel.ti===ti){sel=null;draw();return}if(sel){const dup=wires.find(w=>(w.a.i===sel.i&&w.a.ti===sel.ti&&w.b.i===i&&w.b.ti===ti)||(w.a.i===i&&w.a.ti===ti&&w.b.i===sel.i&&w.b.ti===sel.ti));if(!dup)wires.push({a:{i:sel.i,ti:sel.ti},b:{i,ti}});sel=null;check();draw();return}sel={i,ti};draw();return}}}
   // 开关切换
   let swC=null;for(let i=items.length-1;i>=0;i--){const bi=items[i];if(bi.trayItem.sw&&mx>=bi.x&&mx<=bi.x+bi.trayItem.w&&my>=bi.y&&my<=bi.y+bi.trayItem.h){swC=i;break}}
   sel=null;
