@@ -27,7 +27,7 @@ body{font-family:'Microsoft YaHei','SimHei','PingFang SC',sans-serif;background:
 .hint{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);padding:8px 20px;background:rgba(0,0,0,.75);color:#a09880;font-size:15px;border-radius:6px;pointer-events:none;transition:all .3s;white-space:nowrap;z-index:6}
 .hint.ok{color:#b8d8a0}.hint.warn{background:rgba(200,60,30,.7);color:#f8d8d0}
 .del-hint{position:absolute;bottom:52px;left:50%;transform:translateX(-50%);padding:3px 12px;background:rgba(0,0,0,.5);color:rgba(255,255,255,.25);font-size:11px;border-radius:4px;pointer-events:none;z-index:5}
-.wire-hint{position:absolute;top:12px;right:16px;padding:4px 12px;background:rgba(0,0,0,.6);color:#c89840;font-size:12px;border-radius:4px;pointer-events:none;z-index:5}
+.wire-hint{position:absolute;top:12px;right:16px;padding:8px 16px;background:rgba(0,0,0,.6);color:#c89840;font-size:16px;border-radius:4px;pointer-events:none;z-index:5}
 .modal-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s,background .35s}
 .modal-overlay.active{opacity:1;pointer-events:auto;background:rgba(0,0,0,.55);backdrop-filter:blur(3px)}
 .modal{background:#2a2820;border:3px solid #6a6050;padding:24px 20px;max-width:360px;width:92%;color:#d8d0c0;transform:scale(.7) translateY(30px);transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
@@ -75,10 +75,10 @@ body{font-family:'Microsoft YaHei','SimHei','PingFang SC',sans-serif;background:
 const LABS={
 s4a4:{name:'电路实验室',desc:'四年级上册 · 第四单元',icon:'💡',
   tray:[
-    {id:'battery',icon:'🔋',label:'电池',w:120,h:70,color:'#80a860',term:[{x:.06,y:.5},{x:.94,y:.5}]},
-    {id:'bulb',icon:'💡',label:'灯泡',w:84,h:96,color:'#e8d8a0',term:[{x:.5,y:.06},{x:.5,y:.94}]},
-    {id:'switch',icon:'🔘',label:'开关',w:96,h:52,color:'#a0a0a0',term:[{x:.06,y:.5},{x:.94,y:.5}],sw:true},
-    {id:'blackbox',icon:'📦',label:'电路暗箱',w:140,h:110,color:'#4a4a4a',term:[{x:.22,y:.18},{x:.78,y:.18},{x:.22,y:.82},{x:.78,y:.82}],bb:true},
+    {id:'battery',icon:'🔋',label:'电池',w:240,h:140,color:'#80a860',term:[{x:.06,y:.5},{x:.94,y:.5}]},
+    {id:'bulb',icon:'💡',label:'灯泡',w:168,h:192,color:'#e8d8a0',term:[{x:.5,y:.06},{x:.5,y:.94}]},
+    {id:'switch',icon:'🔘',label:'开关',w:192,h:104,color:'#a0a0a0',term:[{x:.06,y:.5},{x:.94,y:.5}],sw:true},
+    {id:'blackbox',icon:'📦',label:'电路暗箱',w:280,h:220,color:'#4a4a4a',term:[{x:.22,y:.18},{x:.78,y:.18},{x:.22,y:.82},{x:.78,y:.82}],bb:true},
   ]
 },
 s4a3:{name:'力学工坊',desc:'四年级上册 · 第三单元',icon:'⚡',
@@ -131,7 +131,7 @@ function hitBox(mx,my){const boxes=getBoxRects();for(let b of boxes){if(mx>=b.x&
 // ==================== 状态 ====================
 const p=new URLSearchParams(location.search);
 let uid=p.get('unit')||'s4a4',lab=LABS[uid];
-let items=[],wires=[],sel=null,bGlow=0,wasLit=false,ks=false,mechDone=false,aniDone=false,refDone=false,plantDone=false;
+let items=[],wires=[],sel=null,bGlow=0,wasLit=false,ks=false,mechDone=false,aniDone=false,refDone=false,plantDone=false,bbUnlocked=false,bbKs=false,kbMode=0;
 let dragIdx=-1,dragOX=0,dragOY=0,dragType='move',dragSX=0,dragSY=0,dragSw=null;
 
 // Canvas
@@ -158,14 +158,14 @@ function draw(){
     ctx.fillStyle=t.color+'44';ctx.fillRect(bi.x,bi.y,t.w,t.h);
     ctx.strokeStyle=t.color;ctx.lineWidth=2;ctx.strokeRect(bi.x,bi.y,t.w,t.h);
     if(t.sw){ctx.fillStyle=bi.closed===false?'rgba(255,100,80,.5)':'rgba(100,255,130,.5)';ctx.fillRect(bi.x,bi.y,t.w,t.h)}
-    ctx.fillStyle='#fff';ctx.font='36px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='#fff';ctx.font='52px serif';ctx.textAlign='center';ctx.textBaseline='middle';
     ctx.fillText(t.icon,bi.x+t.w/2,bi.y+t.h/2);
-    ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='13px "Microsoft YaHei",sans-serif';ctx.textAlign='center';
-    ctx.fillText(t.label+(t.sw?(bi.closed===false?' OFF':' ON'):''),bi.x+t.w/2,bi.y+t.h-10);
+    ctx.fillStyle='rgba(255,255,255,.8)';ctx.font='bold 16px "Microsoft YaHei",sans-serif';ctx.textAlign='center';
+    ctx.fillText(t.label+(t.sw?(bi.closed===false?' OFF':' ON'):''),bi.x+t.w/2,bi.y+t.h-14);
     t.term.forEach((tm,ti)=>{
       const tx=bi.x+tm.x*t.w,ty=bi.y+tm.y*t.h;
-      ctx.fillStyle=(sel&&sel.i===i&&sel.ti===ti)?'#f0d050':'#c89840';ctx.beginPath();ctx.arc(tx,ty,5,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#8a6830';ctx.lineWidth=1;ctx.stroke();
+      ctx.fillStyle=(sel&&sel.i===i&&sel.ti===ti)?'#f0d050':'#c89840';ctx.beginPath();ctx.arc(tx,ty,7,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#8a6830';ctx.lineWidth=1.5;ctx.stroke();
     });
   });
   // 连线
@@ -174,7 +174,7 @@ function draw(){
     const ta=fa.trayItem,tb=fb.trayItem;
     const ax=fa.x+ta.term[w.a.ti].x*ta.w,ay=fa.y+ta.term[w.a.ti].y*ta.h;
     const bx=fb.x+tb.term[w.b.ti].x*tb.w,by=fb.y+tb.term[w.b.ti].y*tb.h;
-    ctx.strokeStyle='#c89840';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();
+    ctx.strokeStyle='#c89840';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();
     ctx.fillStyle='#e0c860';ctx.beginPath();ctx.arc(ax,ay,3,0,Math.PI*2);ctx.fill();ctx.arc(bx,by,3,0,Math.PI*2);ctx.fill();
   });
   // 灯泡发光
@@ -186,7 +186,7 @@ function draw(){
 }
 
 // 电路暗箱渲染
-function drawBlackbox(bi,i){const t=bi.trayItem,x=bi.x,y=bi.y,w=t.w,h=t.h;ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(x+2,y+2,w,h);ctx.fillStyle='#3a3a38';ctx.fillRect(x,y,w,h);ctx.strokeStyle='#1a1a1a';ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);ctx.fillStyle='#ccc';ctx.font='bold 13px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.fillText('📦 电路暗箱',x+w/2,y+15);ctx.fillStyle='rgba(255,255,255,.06)';ctx.fillRect(x+8,y+22,w-16,h-64);if(bi._revealed&&bi._links){bi._links.forEach(l=>{const a=t.term[l[0]],b=t.term[l[1]];const ax=x+a.x*w,ay=y+a.y*h,bx=x+b.x*w,by=y+b.y*h;ctx.strokeStyle='#f0a030';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();ctx.fillStyle='#f0a030';ctx.beginPath();ctx.arc(ax,ay,4,0,Math.PI*2);ctx.fill();ctx.arc(bx,by,4,0,Math.PI*2);ctx.fill()})}const tl=['A','B','C','D'];t.term.forEach((tm,ti)=>{const tx=x+tm.x*w,ty=y+tm.y*h;ctx.fillStyle=(sel&&sel.i===i&&sel.ti===ti)?'#f0d050':'#c89840';ctx.beginPath();ctx.arc(tx,ty,5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#8a6830';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='#fff';ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText(tl[ti],tx,ty+(ty<y+h/2?16:-10))});const rby=y+h-24,pby=y+h-44;ctx.fillStyle=bi._revealed?'#5a8a40':'#4a4a44';ctx.fillRect(x+w/2-32,rby,64,19);ctx.fillStyle='#fff';ctx.font='11px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.fillText(bi._revealed?'隐藏内部':'🔍 揭示',x+w/2,rby+14);ctx.fillStyle='#4a4a44';ctx.fillRect(x+w/2-32,pby,64,17);ctx.fillText('🎲 换谜题',x+w/2,pby+12);bi._rBtn={x:x+w/2-32,y:rby,w:64,h:19};bi._pBtn={x:x+w/2-32,y:pby,w:64,h:17}}
+function drawBlackbox(bi,i){const t=bi.trayItem,x=bi.x,y=bi.y,w=t.w,h=t.h;ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(x+3,y+3,w,h);ctx.fillStyle='#3a3a38';ctx.fillRect(x,y,w,h);ctx.strokeStyle='#1a1a1a';ctx.lineWidth=3;ctx.strokeRect(x,y,w,h);ctx.fillStyle='#ccc';ctx.font='bold 18px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.fillText('📦 电路暗箱',x+w/2,y+22);ctx.fillStyle='rgba(255,255,255,.06)';ctx.fillRect(x+12,y+32,w-24,h-108);if(bi._revealed&&bi._links){bi._links.forEach(l=>{const a=t.term[l[0]],b=t.term[l[1]];const ax=x+a.x*w,ay=y+a.y*h,bx=x+b.x*w,by=y+b.y*h;ctx.strokeStyle='#f0a030';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();ctx.fillStyle='#f0a030';ctx.beginPath();ctx.arc(ax,ay,6,0,Math.PI*2);ctx.fill();ctx.arc(bx,by,6,0,Math.PI*2);ctx.fill()})}const tl=['A','B','C','D'];t.term.forEach((tm,ti)=>{const tx=x+tm.x*w,ty=y+tm.y*h;ctx.fillStyle=(sel&&sel.i===i&&sel.ti===ti)?'#f0d050':'#c89840';ctx.beginPath();ctx.arc(tx,ty,8,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#8a6830';ctx.lineWidth=1.5;ctx.stroke();ctx.fillStyle='#fff';ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.fillText(tl[ti],tx,ty+(ty<y+h/2?22:-14))});const rby=y+h-42,pby=y+h-78;ctx.fillStyle=bi._revealed?'#5a8a40':'#4a4a44';ctx.fillRect(x+w/2-60,rby,120,34);ctx.fillStyle='#fff';ctx.font='bold 15px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.fillText(bi._revealed?'隐藏内部':'🔍 揭示',x+w/2,rby+23);ctx.fillStyle='#4a4a44';ctx.fillRect(x+w/2-60,pby,120,30);ctx.fillText('🎲 换谜题',x+w/2,pby+21);bi._rBtn={x:x+w/2-60,y:rby,w:120,h:34};bi._pBtn={x:x+w/2-60,y:pby,w:120,h:30}}
 
 // 动物卡片渲染
 function drawAnimal(bi,i){if(bi.placed)return;const t=bi.trayItem,x=bi.x+(bi._shakeX||0),y=bi.y,w=t.w,h=t.h,isDragging=dragIdx===i&&dragType==='animal';ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(x+2,y+2,w,h);ctx.fillStyle=isDragging?'#5a5040':'#3a3830';ctx.fillRect(x-1,y-1,w+2,h+2);ctx.strokeStyle=isDragging?'#c89840':'#6a6050';ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);ctx.fillStyle='#fff';ctx.font='28px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t.icon,x+w/2,y+18);ctx.fillStyle='rgba(255,255,255,.8)';ctx.font='12px "Microsoft YaHei",sans-serif';ctx.fillText(t.label+(t.endangered?' 🔴':''),x+w/2,y+h-10);if(isDragging){ctx.fillStyle='rgba(200,152,64,.2)';ctx.fillRect(x-1,y-1,w+2,h+2)}}
@@ -244,7 +244,7 @@ function hint(msg,type){const e=document.getElementById('hint');e.textContent=ms
 const AC=new(window.AudioContext||window.webkitAudioContext)();
 function sfxLight(){AC.resume();[523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>{const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.15,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.2);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.2)},i*80))}
 function sfxWrong(){AC.resume();for(var i=0;i<4;i++){const o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=400-i*100;g.gain.setValueAtTime(.1,AC.currentTime+i*.06);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+i*.06+.08);o.connect(g);g.connect(AC.destination);o.start(AC.currentTime+i*.06);o.stop(AC.currentTime+i*.06+.08)}}
-function showK(){document.getElementById('modal').innerHTML='<h3>💡 电路知识要点</h3><p><b>闭合回路</b>：电流从电池正极(+)出发，<br>经过导线→用电器→回到电池负极(-)，<br>形成完整的闭合回路，灯泡才会亮。</p><p><b>开关的作用</b>：控制电路的通断。<br>闭合开关=电路通=灯泡亮；<br>断开开关=电路断=灯泡灭。</p><p><b>短路</b>：导线直接连接电池两极，<br>电流不走用电器，会导致电池发热甚至爆炸！</p><button class="btn" onclick="document.getElementById(\'modal-overlay\').classList.remove(\'active\')">知道啦 👍</button>';document.getElementById('modal-overlay').classList.add('active');document.getElementById('k-btn').classList.add('show')}
+function showK(){document.getElementById('modal').innerHTML='<h3>💡 电路知识要点</h3><p><b>闭合回路</b>：电流从电池正极(+)出发，<br>经过导线→用电器→回到电池负极(-)，<br>形成完整的闭合回路，灯泡才会亮。</p><p><b>开关的作用</b>：控制电路的通断。<br>闭合开关=电路通=灯泡亮；<br>断开开关=电路断=灯泡灭。</p><p><b>短路</b>：导线直接连接电池两极，<br>电流不走用电器，会导致电池发热甚至爆炸！</p>'+(bbUnlocked?'':'<p style="color:#f0d050;font-weight:700">🎉 恭喜你解锁了隐藏玩法！<br>左侧器材栏出现了"电路暗箱"！</p>')+'<button class="btn" onclick="document.getElementById(\'modal-overlay\').classList.remove(\'active\')">知道啦 👍</button>';document.getElementById('modal-overlay').classList.add('active');document.getElementById('k-btn').classList.add('show');if(!bbUnlocked){bbUnlocked=true;renderLab()}}
 
 function isExpDone(bi){const t=bi.trayItem;if(t.exp==='spring')return(bi.weights||0)>=4;if(t.exp==='buoyancy'){if(!bi.pld||bi.pld.length<3)return false;return new Set(bi.pld.map(p=>p.icon)).size>=3}if(t.exp==='friction')return new Set(bi._tried||[0]).size>=3;return false}
 function sfxMech(){AC.resume();[440,554,659,880,1109].forEach((f,i)=>setTimeout(()=>{const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.12,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.25);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.25)},i*70))}function showMechK(){document.getElementById('modal').innerHTML='<h3>⚡ 力学知识要点</h3><p><b>弹力（胡克定律）</b>：在弹性限度内，<br>弹簧的伸长量与所受拉力成正比。<br>拉力越大，弹簧伸得越长。</p><p><b>浮力与密度</b>：物体密度 < 液体密度 → 上浮；<br>物体密度 > 液体密度 → 下沉；<br>物体密度 = 液体密度 → 悬浮。</p><p><b>摩擦力</b>：接触面越粗糙，摩擦力越大；<br>接触面越光滑，摩擦力越小。<br>摩擦力阻碍物体相对运动。</p><button class="btn" onclick="document.getElementById(\'modal-overlay\').classList.remove(\'active\')">知道啦 👍</button>';document.getElementById('modal-overlay').classList.add('active');document.getElementById('k-btn').classList.add('show')}
@@ -257,6 +257,7 @@ function showPlantK(){document.getElementById('modal').innerHTML='<h3>🌱 植�
 
 function showGuide(){document.getElementById('modal').innerHTML='<h3>👋 操作指引</h3><p><b>①</b> 点击下方按钮选择视角<br>🏠 站在站台上 或 🚌 在公交上</p><p><b>②</b> 点击场景中的物体<br>（山、树、铁轨、公交、旅客）</p><p><b>③</b> 判断它是<b>运动</b>还是<b>静止</b></p><p style="font-size:13px;color:#c89840">同一个物体，从不同视角观察，<br>运动状态可能完全不同哦！</p><button class="btn" onclick="document.getElementById(\'modal-overlay\').classList.remove(\'active\')">开始探索 👆</button>';document.getElementById('modal-overlay').classList.add('active')}
 function showRefK(){document.getElementById('modal').innerHTML='<h3>🏎️ 参照物知识要点</h3><p><b>参照物</b>：判断物体是否运动时，<br>选作标准的物体叫做参照物。</p><p><b>核心规律</b><br>同一个物体，选不同的参照物，<br>它的运动状态<b>可能不同</b>。</p><p>🏠 站在站台上：公交车是运动的<br>🚌 在公交上：远处的山是运动的</p><p><b>判断方法</b>：物体相对于参照物的<br>位置发生变化 = 运动；不变 = 静止</p><button class="btn" onclick="document.getElementById(\'modal-overlay\').classList.remove(\'active\')">知道啦 👍</button>';document.getElementById('modal-overlay').classList.add('active');document.getElementById('k-btn').classList.add('show')}
+function showBbK(){document.getElementById('modal').innerHTML='<h3>📦 电路暗箱原理</h3><p><b>什么是暗箱？</b><br>暗箱 = 看不见内部的"神秘盒子"。<br>里面只有导线连接，没有用电器。</p><p><b>怎么玩？</b><br>把电池、灯泡接到暗箱的不同端子上，<br>灯泡亮了，就说明这两个端子<br>在暗箱内部是连通的。</p><p><b>科学方法</b><br>通过"输入→观察输出"来推理<br>看不见的内部结构，这正是<br>科学家探索未知世界的方法！</p><button class="btn" onclick="document.getElementById(\'modal-overlay\').classList.remove(\'active\')">知道啦 👍</button>';document.getElementById('modal-overlay').classList.add('active');document.getElementById('k-btn').classList.add('show')}
 function showAniK(){document.getElementById('modal').innerHTML='<h3>🐾 动物分类知识要点</h3><p><b>六大动物类群</b><br>哺乳类：胎生、哺乳、体表有毛<br>鸟类：卵生、有羽毛、有喙无齿<br>爬行类：卵生、有鳞或甲、变温<br>两栖类：卵生、幼体水生、成体可陆生<br>鱼类：终生水生、用鳃呼吸<br>昆虫类：头胸腹三部分、三对足</p><p><b>脊椎动物 vs 无脊椎动物</b><br>🔴 哺乳/鸟/爬行/两栖/鱼 = <b>脊椎动物</b>（有脊柱）<br>🔵 昆虫类 = <b>无脊椎动物</b>（无脊柱）</p><p>卡片带 🔴 = 濒危物种，需保护！<br>🐼大熊猫 🐢海龟</p><button class="btn" onclick="document.getElementById(\'modal-overlay\').classList.remove(\'active\')">知道啦 👍</button>';document.getElementById('modal-overlay').classList.add('active');document.getElementById('k-btn').classList.add('show')}
 
 // ==================== 交互 ====================
@@ -305,9 +306,9 @@ cv.addEventListener('mousedown',e=>{
     return;
   }
   // 暗箱按钮检测
-  for(let i=items.length-1;i>=0;i--){const bi=items[i];if(!bi.trayItem.bb)continue;if(bi._rBtn&&mx>=bi._rBtn.x&&mx<=bi._rBtn.x+bi._rBtn.w&&my>=bi._rBtn.y&&my<=bi._rBtn.y+bi._rBtn.h){bi._revealed=!bi._revealed;sfxLight();draw();return}if(bi._pBtn&&mx>=bi._pBtn.x&&mx<=bi._pBtn.x+bi._pBtn.w&&my>=bi._pBtn.y&&my<=bi._pBtn.y+bi._pBtn.h){const idx=(bi._bbIdx+1)%BB_CONFIGS.length;bi._bbIdx=idx;bi._links=BB_CONFIGS[idx].links;bi._revealed=false;sfxLight();hint('🎲 新谜题！试试找出内部连线','');check();draw();return}}
+  for(let i=items.length-1;i>=0;i--){const bi=items[i];if(!bi.trayItem.bb)continue;if(bi._rBtn&&mx>=bi._rBtn.x&&mx<=bi._rBtn.x+bi._rBtn.w&&my>=bi._rBtn.y&&my<=bi._rBtn.y+bi._rBtn.h){bi._revealed=!bi._revealed;sfxLight();if(!bbKs){bbKs=true;setTimeout(showBbK,400)}draw();return}if(bi._pBtn&&mx>=bi._pBtn.x&&mx<=bi._pBtn.x+bi._pBtn.w&&my>=bi._pBtn.y&&my<=bi._pBtn.y+bi._pBtn.h){const idx=(bi._bbIdx+1)%BB_CONFIGS.length;bi._bbIdx=idx;bi._links=BB_CONFIGS[idx].links;bi._revealed=false;sfxLight();hint('🎲 新谜题！试试找出内部连线','');check();draw();return}}
   // 电路：端子检测
-  for(let i=0;i<items.length;i++){const bi=items[i],t=bi.trayItem;for(let ti=0;ti<t.term.length;ti++){const tx=bi.x+t.term[ti].x*t.w,ty=bi.y+t.term[ti].y*t.h;if(Math.abs(mx-tx)<16&&Math.abs(my-ty)<16){if(sel&&sel.i===i&&sel.ti===ti){sel=null;draw();return}if(sel){const dup=wires.find(w=>(w.a.i===sel.i&&w.a.ti===sel.ti&&w.b.i===i&&w.b.ti===ti)||(w.a.i===i&&w.a.ti===ti&&w.b.i===sel.i&&w.b.ti===sel.ti));if(!dup)wires.push({a:{i:sel.i,ti:sel.ti},b:{i,ti}});sel=null;check();draw();return}sel={i,ti};draw();return}}}
+  for(let i=0;i<items.length;i++){const bi=items[i],t=bi.trayItem;for(let ti=0;ti<t.term.length;ti++){const tx=bi.x+t.term[ti].x*t.w,ty=bi.y+t.term[ti].y*t.h;if(Math.abs(mx-tx)<22&&Math.abs(my-ty)<22){if(sel&&sel.i===i&&sel.ti===ti){sel=null;draw();return}if(sel){const dup=wires.find(w=>(w.a.i===sel.i&&w.a.ti===sel.ti&&w.b.i===i&&w.b.ti===ti)||(w.a.i===i&&w.a.ti===ti&&w.b.i===sel.i&&w.b.ti===sel.ti));if(!dup)wires.push({a:{i:sel.i,ti:sel.ti},b:{i,ti}});sel=null;check();draw();return}sel={i,ti};draw();return}}}
   // 开关切换
   let swC=null;for(let i=items.length-1;i>=0;i--){const bi=items[i];if(bi.trayItem.sw&&mx>=bi.x&&mx<=bi.x+bi.trayItem.w&&my>=bi.y&&my<=bi.y+bi.trayItem.h){swC=i;break}}
   sel=null;
@@ -318,12 +319,12 @@ cv.addEventListener('mousedown',e=>{
 cv.addEventListener('mousemove',e=>{if(dragIdx<0)return;if(dragType==='slide'){const raw=Math.max(0,Math.min(240,e.offsetX-dragOX));const bi=items[dragIdx];bi._slideTarget=raw;const s=bi.surface||0;const msgs=['光滑表面摩擦力很小！','普通表面摩擦力适中','粗糙表面摩擦力很大！'];hint(raw>40?msgs[s]:'向右拖动滑块...',raw>40?'ok':'');draw();return}if(dragType==='animal'){items[dragIdx].x=e.offsetX-dragOX;items[dragIdx].y=e.offsetY-dragOY;draw();return}items[dragIdx].x=e.offsetX-dragOX;items[dragIdx].y=e.offsetY-dragOY;if(uid==='s4a4')check();draw()});
 cv.addEventListener('mouseup',e=>{if(dragType==='animal'&&dragIdx>=0){const bi=items[dragIdx],t=bi.trayItem;const box=hitBox(bi.x+t.w/2,bi.y+t.h/2);if(box&&box.id===t.cat){bi.placed=true;bi._boxId=box.id;sfxLight();try{document.querySelector('.tray-item[data-id="'+t.id+'"]').style.opacity='.25'}catch(e){}hint('✅ 正确！'+t.label+'属于'+box.name,'ok')}else if(box){bi._shakeV=8;sfxWrong();hint('❌ '+t.label+'不属于'+box.name+'，再想想！','warn')}else{bi.x=bi._ox;bi.y=bi._oy}}if(dragSw!==null&&dragIdx>=0&&Math.abs(e.offsetX-dragSX)<4&&Math.abs(e.offsetY-dragSY)<4){const bi=items[dragIdx];if(bi.trayItem.sw){bi.closed=!bi.closed;check();draw()}}dragIdx=-1;dragSw=null;dragType='move';cv.style.cursor='default';draw()});
 cv.addEventListener('mouseleave',()=>{dragIdx=-1;dragType='move';cv.style.cursor='default'});
-cv.addEventListener('dblclick',e=>{const mx=e.offsetX,my=e.offsetY;for(let i=wires.length-1;i>=0;i--){const w=wires[i],fa=items[w.a.i],fb=items[w.b.i];if(!fa||!fb)continue;const ta=fa.trayItem,tb=fb.trayItem;const ax=fa.x+ta.term[w.a.ti].x*ta.w,ay=fa.y+ta.term[w.a.ti].y*ta.h,bx=fb.x+tb.term[w.b.ti].x*tb.w,by=fb.y+tb.term[w.b.ti].y*tb.h;if(Math.abs(mx-(ax+bx)/2)<12&&Math.abs(my-(ay+by)/2)<12){wires.splice(i,1);check();draw();return}}});
+cv.addEventListener('dblclick',e=>{const mx=e.offsetX,my=e.offsetY;let best=-1,bestD=30;for(let i=wires.length-1;i>=0;i--){const w=wires[i],fa=items[w.a.i],fb=items[w.b.i];if(!fa||!fb)continue;const ta=fa.trayItem,tb=fb.trayItem;const ax=fa.x+ta.term[w.a.ti].x*ta.w,ay=fa.y+ta.term[w.a.ti].y*ta.h,bx=fb.x+tb.term[w.b.ti].x*tb.w,by=fb.y+tb.term[w.b.ti].y*tb.h;const dx=bx-ax,dy=by-ay;const t2=dx*dx+dy*dy||1;const pr=Math.max(0,Math.min(1,((mx-ax)*dx+(my-ay)*dy)/t2));const px=ax+pr*dx,py=ay+pr*dy;const d=Math.hypot(mx-px,my-py);if(d<bestD){bestD=d;best=i}}if(best>=0){wires.splice(best,1);check();draw()}});
 cv.addEventListener('contextmenu',e=>{e.preventDefault();const mx=e.offsetX,my=e.offsetY;for(let i=items.length-1;i>=0;i--){const bi=items[i],t=bi.trayItem;if(mx>=bi.x&&mx<=bi.x+t.w&&my>=bi.y&&my<=bi.y+t.h){wires=wires.filter(w=>w.a.i!==i&&w.b.i!==i);wires.forEach(w=>{if(w.a.i>i)w.a.i--;if(w.b.i>i)w.b.i--});items.splice(i,1);sel=null;if(uid==='s4a4')check();draw();return}}});
 
 // ==================== 切换/清空 ====================
-function renderLab(){document.getElementById('tray').innerHTML=lab.tray.map(t=>`<div class="tray-item" data-id="${t.id}"><span class="icon">${t.icon}</span>${t.label}</div>`).join('');document.querySelectorAll('.top-btn[id^="btn-"]').forEach(b=>b.classList.remove('active'));const ab=document.getElementById('btn-'+uid);if(ab)ab.classList.add('active')}
-function showKnowledge(){if(uid==='s4a4')showK();else if(uid==='s4a3')showMechK();else if(uid==='s4a1')showAniK();else if(uid==='s4a2')showRefK();else if(uid==='s3b1')showPlantK()}function switchUnit(id){uid=id;lab=LABS[id];items=[];wires=[];sel=null;bGlow=0;ks=false;mechDone=false;aniDone=false;refDone=false;plantDone=false;dragType='move';document.getElementById('k-btn').classList.remove('show');renderLab();document.getElementById('uname').textContent=lab.icon+' '+lab.name;document.getElementById('udesc').textContent=lab.desc||'';document.getElementById('wire-hint').style.display=uid==='s4a4'?'block':'none';document.getElementById('del-hint').style.display='none';document.getElementById('hint').textContent=uid==='s4a4'?'💡 点击左侧器材→点击金色端子连线':uid==='s4a2'?'💡 选择站台/公交视角→点击场景物体→判断运动还是静止':'💡 点击左侧实验卡片→添加到工作台→点击卡片内按钮互动';if(uid==='s4a4')check();if(uid==='s4a2')setTimeout(showGuide,400);if(uid==='s3b1')setTimeout(showPlantGuide,400);draw()}
+function renderLab(){const tt=(uid==='s4a4'&&!bbUnlocked)?lab.tray.filter(t=>!t.bb):lab.tray;document.getElementById('tray').innerHTML=tt.map(t=>`<div class="tray-item" data-id="${t.id}"><span class="icon">${t.icon}</span>${t.label}</div>`).join('');document.querySelectorAll('.top-btn[id^="btn-"]').forEach(b=>b.classList.remove('active'));const ab=document.getElementById('btn-'+uid);if(ab)ab.classList.add('active')}
+function showKnowledge(){if(uid==='s4a4'){if(bbKs&&kbMode===1){showBbK();kbMode=0}else{showK();kbMode=bbKs?1:0}}else if(uid==='s4a3')showMechK();else if(uid==='s4a1')showAniK();else if(uid==='s4a2')showRefK();else if(uid==='s3b1')showPlantK()}function switchUnit(id){uid=id;lab=LABS[id];items=[];wires=[];sel=null;bGlow=0;ks=false;mechDone=false;aniDone=false;refDone=false;plantDone=false;bbUnlocked=false;bbKs=false;kbMode=0;dragType='move';document.getElementById('k-btn').classList.remove('show');renderLab();document.getElementById('uname').textContent=lab.icon+' '+lab.name;document.getElementById('udesc').textContent=lab.desc||'';document.getElementById('wire-hint').style.display=uid==='s4a4'?'block':'none';document.getElementById('del-hint').style.display='none';document.getElementById('hint').textContent=uid==='s4a4'?'💡 点击左侧器材→点击金色端子连线':uid==='s4a2'?'💡 选择站台/公交视角→点击场景物体→判断运动还是静止':'💡 点击左侧实验卡片→添加到工作台→点击卡片内按钮互动';if(uid==='s4a4')check();if(uid==='s4a2')setTimeout(showGuide,400);if(uid==='s3b1')setTimeout(showPlantGuide,400);draw()}
 function clearBench(){items=[];wires=[];sel=null;bGlow=0;ks=false;aniDone=false;refDone=false;plantDone=false;dragType='move';document.getElementById('del-hint').style.display='none';document.querySelectorAll('.tray-item').forEach(el=>el.style.opacity='');if(uid==='s4a4')check();draw()}
 
 // ==================== 初始化 ====================
