@@ -78,6 +78,7 @@ s4a4:{name:'电路实验室',desc:'四年级上册 · 第四单元',icon:'💡',
     {id:'battery',icon:'🔋',label:'电池',w:120,h:70,color:'#80a860',term:[{x:.06,y:.5},{x:.94,y:.5}]},
     {id:'bulb',icon:'💡',label:'灯泡',w:84,h:96,color:'#e8d8a0',term:[{x:.5,y:.06},{x:.5,y:.94}]},
     {id:'switch',icon:'🔘',label:'开关',w:96,h:52,color:'#a0a0a0',term:[{x:.06,y:.5},{x:.94,y:.5}],sw:true},
+    {id:'blackbox',icon:'📦',label:'电路暗箱',w:140,h:110,color:'#4a4a4a',term:[{x:.22,y:.18},{x:.78,y:.18},{x:.22,y:.82},{x:.78,y:.82}],bb:true},
   ]
 },
 s4a3:{name:'力学工坊',desc:'四年级上册 · 第三单元',icon:'⚡',
@@ -123,6 +124,7 @@ s3b4:{name:'气象站',desc:'三年级下册 · 第五单元',icon:'🌈',tray:[
 
 // 动物分类数据
 const ANIMAL_CATS=[{id:'mammal',name:'哺乳类'},{id:'bird',name:'鸟类'},{id:'reptile',name:'爬行类'},{id:'amphibian',name:'两栖类'},{id:'fish',name:'鱼类'},{id:'insect',name:'昆虫类'}];
+const BB_CONFIGS=[{name:'谜题1',links:[[0,1]]},{name:'谜题2',links:[[0,2]]},{name:'谜题3',links:[[0,1],[2,3]]},{name:'谜题4',links:[[0,3],[1,2]]}];
 function getBoxRects(){const cols=3,rows=2,bw=230,bh=130,gx=20,gy=18,tw=cols*bw+(cols-1)*gx,th=rows*bh+(rows-1)*gy,ox=(W-tw)/2,oy=Math.max(30,(H-th)/2);let r=[];for(let ri=0;ri<rows;ri++)for(let ci=0;ci<cols;ci++){const c=ANIMAL_CATS[ri*cols+ci];r.push({id:c.id,name:c.name,x:ox+ci*(bw+gx),y:oy+ri*(bh+gy),w:bw,h:bh})}return r}
 function hitBox(mx,my){const boxes=getBoxRects();for(let b of boxes){if(mx>=b.x&&mx<=b.x+b.w&&my>=b.y&&my<=b.y+b.h)return b}return null}
 
@@ -149,6 +151,7 @@ function draw(){
     const t=bi.trayItem;
     if(t.exp){drawExp(bi);return} // 力学实验由专用函数渲染
     if(t.animal){drawAnimal(bi,i);return} // 动物卡片
+    if(t.bb){drawBlackbox(bi,i);return} // 电路暗箱
     // 电路组件
     ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(bi.x+2,bi.y+2,t.w,t.h);
     ctx.fillStyle='#3a3830';ctx.fillRect(bi.x-1,bi.y-1,t.w+2,t.h+2);
@@ -181,6 +184,9 @@ function draw(){
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,55,0,Math.PI*2);ctx.fill();
   });
 }
+
+// 电路暗箱渲染
+function drawBlackbox(bi,i){const t=bi.trayItem,x=bi.x,y=bi.y,w=t.w,h=t.h;ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(x+2,y+2,w,h);ctx.fillStyle='#3a3a38';ctx.fillRect(x,y,w,h);ctx.strokeStyle='#1a1a1a';ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);ctx.fillStyle='#ccc';ctx.font='bold 13px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.fillText('📦 电路暗箱',x+w/2,y+15);ctx.fillStyle='rgba(255,255,255,.06)';ctx.fillRect(x+8,y+22,w-16,h-64);if(bi._revealed&&bi._links){bi._links.forEach(l=>{const a=t.term[l[0]],b=t.term[l[1]];const ax=x+a.x*w,ay=y+a.y*h,bx=x+b.x*w,by=y+b.y*h;ctx.strokeStyle='#f0a030';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();ctx.fillStyle='#f0a030';ctx.beginPath();ctx.arc(ax,ay,4,0,Math.PI*2);ctx.fill();ctx.arc(bx,by,4,0,Math.PI*2);ctx.fill()})}const tl=['A','B','C','D'];t.term.forEach((tm,ti)=>{const tx=x+tm.x*w,ty=y+tm.y*h;ctx.fillStyle=(sel&&sel.i===i&&sel.ti===ti)?'#f0d050':'#c89840';ctx.beginPath();ctx.arc(tx,ty,5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#8a6830';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='#fff';ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText(tl[ti],tx,ty+(ty<y+h/2?16:-10))});const rby=y+h-24,pby=y+h-44;ctx.fillStyle=bi._revealed?'#5a8a40':'#4a4a44';ctx.fillRect(x+w/2-32,rby,64,19);ctx.fillStyle='#fff';ctx.font='11px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.fillText(bi._revealed?'隐藏内部':'🔍 揭示',x+w/2,rby+14);ctx.fillStyle='#4a4a44';ctx.fillRect(x+w/2-32,pby,64,17);ctx.fillText('🎲 换谜题',x+w/2,pby+12);bi._rBtn={x:x+w/2-32,y:rby,w:64,h:19};bi._pBtn={x:x+w/2-32,y:pby,w:64,h:17}}
 
 // 动物卡片渲染
 function drawAnimal(bi,i){if(bi.placed)return;const t=bi.trayItem,x=bi.x+(bi._shakeX||0),y=bi.y,w=t.w,h=t.h,isDragging=dragIdx===i&&dragType==='animal';ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(x+2,y+2,w,h);ctx.fillStyle=isDragging?'#5a5040':'#3a3830';ctx.fillRect(x-1,y-1,w+2,h+2);ctx.strokeStyle=isDragging?'#c89840':'#6a6050';ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);ctx.fillStyle='#fff';ctx.font='28px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t.icon,x+w/2,y+18);ctx.fillStyle='rgba(255,255,255,.8)';ctx.font='12px "Microsoft YaHei",sans-serif';ctx.fillText(t.label+(t.endangered?' 🔴':''),x+w/2,y+h-10);if(isDragging){ctx.fillStyle='rgba(200,152,64,.2)';ctx.fillRect(x-1,y-1,w+2,h+2)}}
@@ -222,6 +228,7 @@ function check(){
   function addEdge(n1,n2){if(!adj.has(n1))adj.set(n1,[]);if(!adj.has(n2))adj.set(n2,[]);adj.get(n1).push(n2);adj.get(n2).push(n1)}
   wires.forEach(w=>{addEdge(nodeKey(w.a.i,w.a.ti),nodeKey(w.b.i,w.b.ti))});
   items.forEach((bi,i)=>{const t=bi.trayItem;if(t.sw&&bi.closed!==false&&t.term.length>=2)addEdge(nodeKey(i,0),nodeKey(i,1))});
+  items.forEach((bi,i)=>{const t=bi.trayItem;if(t.bb&&bi._links)bi._links.forEach(l=>addEdge(nodeKey(i,l[0]),nodeKey(i,l[1])))});
   const b0=bats[0],n0=nodeKey(b0.i,0),n1=nodeKey(b0.i,1);
   if(adj.has(n0)&&adj.get(n0).some(n=>n===n1)){hint('⚡ 短路！电池两极直连！','warn');return}
   function reach(from){const v=new Set(),q=[from];v.add(from);while(q.length){const c=q.shift();(adj.get(c)||[]).forEach(n=>{if(!v.has(n)){v.add(n);q.push(n)}})}return v}
@@ -261,7 +268,7 @@ document.getElementById('tray').addEventListener('click',e=>{
   if(t.animal){const ac=items.filter(bi=>bi.trayItem.animal).length;nx=W/2-t.w/2+(ac%5-2)*16;ny=Math.max(20,H*.15)+(Math.floor(ac/5))*20}
   else if(t.exp){nx=Math.max(10,W/2-t.w/2);ny=20+items.filter(x=>x.trayItem.exp).length*210}
   else{nx=40+Math.random()*200;ny=40+Math.random()*200}
-  items.push({trayItem:t,x:nx,y:ny,_ox:nx,_oy:ny,placed:false,_boxId:null,closed:t.sw?false:undefined,weights:0,surface:0,slideX:0,pld:null,_animSt:0,_animV:0,_slideTarget:0,_tried:[0],_shakeX:0,_shakeV:0});
+  items.push({trayItem:t,x:nx,y:ny,_ox:nx,_oy:ny,placed:false,_boxId:null,closed:t.sw?false:undefined,weights:0,surface:0,slideX:0,pld:null,_animSt:0,_animV:0,_slideTarget:0,_tried:[0],_shakeX:0,_shakeV:0,_bbIdx:Math.floor(Math.random()*BB_CONFIGS.length),_links:BB_CONFIGS[Math.floor(Math.random()*BB_CONFIGS.length)].links,_revealed:false});
   document.getElementById('del-hint').style.display='block';
   if(uid==='s4a4')check();draw();
 });
@@ -297,6 +304,8 @@ cv.addEventListener('mousedown',e=>{
     for(let i=items.length-1;i>=0;i--){const bi=items[i],t=bi.trayItem;if(mx>=bi.x&&mx<=bi.x+t.w&&my>=bi.y&&my<=bi.y+t.h){dragIdx=i;dragOX=mx-bi.x;dragOY=my-bi.y;dragType='move';cv.style.cursor='grabbing';return}}
     return;
   }
+  // 暗箱按钮检测
+  for(let i=items.length-1;i>=0;i--){const bi=items[i];if(!bi.trayItem.bb)continue;if(bi._rBtn&&mx>=bi._rBtn.x&&mx<=bi._rBtn.x+bi._rBtn.w&&my>=bi._rBtn.y&&my<=bi._rBtn.y+bi._rBtn.h){bi._revealed=!bi._revealed;sfxLight();draw();return}if(bi._pBtn&&mx>=bi._pBtn.x&&mx<=bi._pBtn.x+bi._pBtn.w&&my>=bi._pBtn.y&&my<=bi._pBtn.y+bi._pBtn.h){const idx=(bi._bbIdx+1)%BB_CONFIGS.length;bi._bbIdx=idx;bi._links=BB_CONFIGS[idx].links;bi._revealed=false;sfxLight();hint('🎲 新谜题！试试找出内部连线','');check();draw();return}}
   // 电路：端子检测
   for(let i=0;i<items.length;i++){const bi=items[i],t=bi.trayItem;for(let ti=0;ti<t.term.length;ti++){const tx=bi.x+t.term[ti].x*t.w,ty=bi.y+t.term[ti].y*t.h;if(Math.abs(mx-tx)<16&&Math.abs(my-ty)<16){if(sel&&sel.i===i&&sel.ti===ti){sel=null;draw();return}if(sel){const dup=wires.find(w=>(w.a.i===sel.i&&w.a.ti===sel.ti&&w.b.i===i&&w.b.ti===ti)||(w.a.i===i&&w.a.ti===ti&&w.b.i===sel.i&&w.b.ti===sel.ti));if(!dup)wires.push({a:{i:sel.i,ti:sel.ti},b:{i,ti}});sel=null;check();draw();return}sel={i,ti};draw();return}}}
   // 开关切换
