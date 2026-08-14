@@ -321,8 +321,7 @@ function showAniK(){document.getElementById('modal').innerHTML='<h3>🐾 动物�
 // 托盘点击
 document.getElementById('tray').addEventListener('click',e=>{
   const it=e.target.closest('.tray-item');if(!it)return;
-  let t=lab.tray.find(x=>x.id===it.dataset.id);if(!t)return;
-  if(window.innerWidth<640&&t.w>window.innerWidth-16){const s=(window.innerWidth-16)/t.w;t=Object.assign({},t,{w:Math.round(t.w*s),h:Math.round(t.h*s)})}
+  const t=lab.tray.find(x=>x.id===it.dataset.id);if(!t)return;
   if(uid==='s4a4'&&(t.id==='battery'||t.id==='bulb'||t.id==='switch')&&items.some(bi=>bi.trayItem.id===t.id)){hint('⚠️ '+t.label+'已经有一个了，先删除或直接使用它吧','warn');return}
   let nx,ny;
   if(t.animal){const ac=items.filter(bi=>bi.trayItem.animal).length;nx=W/2-t.w/2+(ac%5-2)*16;ny=Math.max(20,H*.15)+(Math.floor(ac/5))*20}
