@@ -63,7 +63,7 @@ body:active{cursor:grabbing}
 .modal-btn.primary{background:#e0b860;color:#fff;border-color:#c89840}.modal-btn.primary:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 rgba(120,90,50,.18)}
 .modal-btn.secondary{background:#fffdf8;color:#5a4030}.modal-btn.secondary:hover{background:#fdf6ed}
 .modal-close{position:absolute;top:10px;right:12px;width:26px;height:26px;border:2px solid rgba(0,0,0,.08);background:#fffdf8;color:#9a8070;font-size:16px;cursor:pointer;font-weight:700}
-@media(max-width:640px){.top-btn{padding:6px 12px;font-size:18px}.btn-group{gap:6px}.review-banner{font-size:18px;padding:8px 16px;bottom:16px}.modal{padding:20px 15px 14px}}
+@media(max-width:640px){.top-btn{padding:6px 10px;font-size:16px}.btn-group{flex-direction:column;gap:6px}.title-img{width:min(40vw,150px)}.review-banner{font-size:18px;padding:8px 16px;bottom:16px}.modal{padding:20px 15px 14px}}
 </style>
 </head>
 <body>
@@ -78,8 +78,8 @@ body:active{cursor:grabbing}
       <button class="top-btn" onclick="openReview()">📝 复习</button>
     </div>
     <div class="btn-group">
-      <button class="top-btn" onclick="clearProgress()" style="border-color:#d89870;color:#b87050">🗑</button>
       <button class="top-btn" onclick="toggleHelp()">?</button>
+      <button class="top-btn" onclick="clearProgress()" style="border-color:#d89870;color:#b87050">🗑</button>
     </div>
   </div>
   <div class="review-banner" onclick="openReview()"><span style="display:inline-block;width:9px;height:9px;background:#d4a860;animation:dB 1s step-end infinite"></span> 今日 <b id="review-count">3</b> 道错题待复习 <span style="opacity:.6">></span></div>
