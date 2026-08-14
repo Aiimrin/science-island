@@ -321,11 +321,12 @@ function showAniK(){document.getElementById('modal').innerHTML='<h3>🐾 动物�
 // 托盘点击
 document.getElementById('tray').addEventListener('click',e=>{
   const it=e.target.closest('.tray-item');if(!it)return;
-  const t=lab.tray.find(x=>x.id===it.dataset.id);if(!t)return;
+  let t=lab.tray.find(x=>x.id===it.dataset.id);if(!t)return;
+  if(window.innerWidth<640&&t.animal){t=Object.assign({},t,{w:60,h:41})}
   if(uid==='s4a4'&&(t.id==='battery'||t.id==='bulb'||t.id==='switch')&&items.some(bi=>bi.trayItem.id===t.id)){hint('⚠️ '+t.label+'已经有一个了，先删除或直接使用它吧','warn');return}
   let nx,ny;
   if(t.animal){const ac=items.filter(bi=>bi.trayItem.animal).length;nx=W/2-t.w/2+(ac%5-2)*16;ny=Math.max(20,H*.15)+(Math.floor(ac/5))*20}
-  else if(t.exp){nx=Math.max(10,W/2-t.w/2);ny=20+items.filter(x=>x.trayItem.exp).length*210}
+  else if(t.exp){nx=Math.max(10,W/2-t.w/2);const g=window.innerWidth<640?90:210;ny=20+items.filter(x=>x.trayItem.exp).length*g}
   else{nx=40+Math.random()*200;ny=40+Math.random()*200}
   items.push({trayItem:t,x:nx,y:ny,_ox:nx,_oy:ny,placed:false,_boxId:null,closed:t.sw?false:undefined,weights:0,surface:0,slideX:0,pld:null,_animSt:0,_animV:0,_slideTarget:0,_tried:[0],_shakeX:0,_shakeV:0,_bbIdx:Math.floor(Math.random()*BB_CONFIGS.length),_links:null,_revealed:false});
   const ni=items[items.length-1];if(ni.trayItem.bb)ni._links=BB_CONFIGS[ni._bbIdx].links;if(ni.trayItem.exp==='thermo')ni._temp=10;
