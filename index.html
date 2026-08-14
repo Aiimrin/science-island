@@ -122,15 +122,20 @@ const IS=[
 ];
 
 // ==================== 网格布局 ====================
-const CELL_W=360, CELL_H=280, PAD_TOP=60;
+const PAD_TOP=60;
 function isMobile(){return window.innerWidth<700}
+function cellSize(){
+  if(isMobile()){const w=Math.min(200,window.innerWidth/2);return{w:w,h:Math.round(w*.82)}}
+  return{w:360,h:280};
+}
 function layoutGrid(){
   const cols=isMobile()?2:4;
+  const cs=cellSize();
   const rows=Math.ceil(IS.length/cols);
-  const totalW=cols*CELL_W,totalH=rows*CELL_H+PAD_TOP;
+  const totalW=cols*cs.w,totalH=rows*cs.h+PAD_TOP;
   IS.forEach((is,i)=>{
     const col=i%cols,row=Math.floor(i/cols);
-    is.gx=col*CELL_W+CELL_W/2;is.gy=PAD_TOP+row*CELL_H+CELL_H/2;
+    is.gx=col*cs.w+cs.w/2;is.gy=PAD_TOP+row*cs.h+cs.h/2;
   });
   return{cols,rows,totalW,totalH};
 }
@@ -277,12 +282,14 @@ function drawIslands(){
     const sx=is.gx-offsetX,sy=is.gy-offsetY;
     if(sx<-120||sx>W+120||sy<-120||sy>H+120)return;
     const ho=hov===is.id,pr=prog[is.id],pct=pr?Math.min(1,pr.c/is.topics.length):0;
+    const mob=isMobile(),sc=mob?cellSize().w/360:1;
     ctx.save();ctx.translate(sx,sy);
+    ctx.scale(sc,sc);
     SF[is.shape](0,0,is.c,is.cd,is.cs,is.cg,is.cw);
     if(pct>0&&pct<1){ctx.strokeStyle=is.c;ctx.lineWidth=6;ctx.strokeRect(-88,-78,176,132)}else if(pct>=1){ctx.strokeStyle='#e8c050';ctx.lineWidth=6;ctx.strokeRect(-88,-78,176,132)}
     if(ho){ctx.fillStyle='rgba(255,240,200,.22)';ctx.fillRect(-92,-84,184,142)}
     // 标签——无背景无emoji
-    const ls=.82,fs=Math.round(48/ls);
+    const ls=mob?1:.82,fs=Math.round(mob?48:48/.82);
     ctx.scale(ls,ls);
     ctx.font=`bold ${fs}px PxFont,SimSun,monospace`;ctx.fillStyle='#5a4030';ctx.textAlign='center';ctx.textBaseline='top';
     ctx.fillText(is.n,0,64);
