@@ -346,7 +346,7 @@ function startTree(){location.href='tree.html?unit='+(aid)}
 function openBadges(){location.href='badges.html'}
 function openReview(){location.href='review.html'}
 function toggleHelp(){alert('操作帮助\n\n🖱️ 桌面：横向拖拽\n👆 手机：纵向滑动\n🏝️ 点击岛屿进入学习')}
-function clearProgress(){if(confirm('确定要清空所有学习进度吗？此操作不可恢复。')){localStorage.removeItem('sci_prog');localStorage.removeItem('sci_review');localStorage.removeItem('sci_review_graduate');localStorage.removeItem('sci_pending');progress={};IS.forEach(is=>{progress[is.id]={c:0,s:0}});document.getElementById('review-count').textContent='0';document.getElementById('badge-dot').classList.remove('on');alert('进度已清空！')}}
+function clearProgress(){if(confirm('确定要清空所有学习进度吗？此操作不可恢复。')){localStorage.removeItem('sci_prog');localStorage.removeItem('sci_review');localStorage.removeItem('sci_review_graduate');localStorage.removeItem('sci_pending');localStorage.removeItem('sci_lab');progress={};IS.forEach(is=>{progress[is.id]={c:0,s:0}});document.getElementById('review-count').textContent='0';document.getElementById('badge-dot').classList.remove('on');alert('进度已清空！')}}
 function resetView(){offsetX=0;offsetY=0}
 
 (function(){var r=JSON.parse(localStorage.getItem('sci_review')||'[]');var today=new Date().toDateString();var due=r.filter(function(q){return new Date(q.next)<=new Date(today)}).length;document.getElementById('review-count').textContent=due||0;})();

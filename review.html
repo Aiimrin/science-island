@@ -43,6 +43,14 @@ body{font-family:'Microsoft YaHei','SimHei','PingFang SC',sans-serif;background:
 .level-badge.l0{background:#f8e0d0;color:#c05030}
 .level-badge.l1{background:#fef5e0;color:#c08030}
 .level-badge.l2{background:#e8f0d8;color:#608030}
+.tabs{display:flex;gap:8px;padding:12px 16px;background:#fffdf6;border-bottom:2px solid rgba(0,0,0,.04)}
+.tab{padding:8px 16px;border:2px solid #d8c8a8;background:#fdf6ed;font-size:15px;font-weight:700;cursor:pointer;border-radius:6px;color:#4a3020;font-family:inherit}
+.tab.active{background:#e0b860;color:#fff;border-color:#c8a050}
+.book-item{background:#fffdf8;border:2px solid #e0d8c8;padding:16px;margin-bottom:12px;border-radius:6px;box-shadow:2px 2px 0 rgba(120,90,50,.08)}
+.book-unit{font-size:12px;color:#b09870;margin-bottom:4px}
+.book-item .bq{font-size:16px;font-weight:700;margin-bottom:8px;line-height:1.6}
+.book-item .ba{font-size:14px;color:#386020;margin-bottom:6px;font-weight:700}
+.book-item .be{font-size:13px;color:#8a7060;line-height:1.7;background:#f8f0e0;padding:8px 10px;border-radius:4px}
 </style>
 </head>
 <body>
@@ -51,6 +59,11 @@ body{font-family:'Microsoft YaHei','SimHei','PingFang SC',sans-serif;background:
 <div class="top">
   <button class="back-btn" onclick="history.back()">←</button>
   <div class="unit-info"><div class="unit-name">📝 错题复习</div><div class="unit-desc">间隔重复 · 科学记忆</div></div>
+</div>
+<div class="tabs" id="tabs">
+  <button class="tab active" data-tab="review">📝 待复习</button>
+  <button class="tab" data-tab="wrong">📕 错题本</button>
+  <button class="tab" data-tab="good">⭐ 好题本</button>
 </div>
 <div class="stats" id="stats"></div>
 <div class="main" id="main"></div>
@@ -107,62 +120,33 @@ function saveReviewQueue(items){
 const UNAMES={s4a1:'动物王国',s4a2:'运动竞技',s4a3:'力学工坊',s4a4:'电路实验室',s3b1:'植物乐园',s3b2:'声音探秘',s3b3:'材料工坊',s3b4:'气象站'};
 
 // ==================== 渲染 ====================
-const dueQs=getDueQuestions();
-const allQs=JSON.parse(localStorage.getItem('sci_review')||'[]');
-document.getElementById('stats').innerHTML=`
-  待复习 <strong>${dueQs.length}</strong> 题 · 总计 <strong>${allQs.length}</strong> 题待毕业
-  · 已毕业 <strong>${JSON.parse(localStorage.getItem('sci_review_graduate')||'0')}</strong> 题
-`;
-
 const main=document.getElementById('main');
-if(dueQs.length===0){
-  // 检查是否有过答题记录
-  var prog=JSON.parse(localStorage.getItem('sci_prog')||'{}');
-  var hasAnswered=false;
-  for(var k in prog){if(prog[k]&&(prog[k].c>0||prog[k].s>0)){hasAnswered=true;break}}
 
-  if(!hasAnswered){
-    // 从未答过题
-    main.innerHTML=`
-      <div class="empty">
-        <div class="empty-icon">📭</div>
-        <div class="empty-title">还没有错题记录</div>
-        <div class="empty-text">
-          错题本里空空如也——说明你还没开始答题呢！<br>
-          去闯关模式做题吧，答错的题目会自动加入复习队列。<br>
-          连续答对3次同一道题，它就能从这里"毕业"。
-        </div>
-        <a class="btn" href="index.html">🏠 回首页</a>
-      </div>`;
-  }else if(allQs.length===0){
-    // 答过题但零错题——全部正确！
-    main.innerHTML=`
-      <div class="empty">
-        <div class="empty-icon">🏆</div>
-        <div class="empty-title">太厉害了，全部正确！</div>
-        <div class="empty-text">
-          你答过的所有题目都是对的，一道错题都没有！<br>
-          继续保持这个状态，你就是科学小达人～<br><br>
-          去闯关模式挑战更多题目吧。
-        </div>
-        <a class="btn" href="index.html">🏠 回首页</a>
-      </div>`;
-  }else{
-    // 全部毕业
-    main.innerHTML=`
-      <div class="empty">
-        <div class="empty-icon">🎉</div>
-        <div class="empty-title">今天没有待复习的错题！</div>
-        <div class="empty-text">
-          所有错题都已按计划复习完毕。<br>
-          做错的题目会在1天后自动出现在复习队列中，<br>
-          连续答对3次即可"毕业"。<br><br>
-          去闯关模式做新题，答错的题会自动加入复习队列。
-        </div>
-        <a class="btn" href="index.html">🏠 回首页</a>
-      </div>`;
+function updateStats(){
+  const dueQs=getDueQuestions();
+  const wb=JSON.parse(localStorage.getItem('sci_wrongbook')||'[]');
+  const gd=JSON.parse(localStorage.getItem('sci_good')||'[]');
+  document.getElementById('stats').innerHTML=
+    '待复习 <strong>'+dueQs.length+'</strong> 题 · 错题本 <strong>'+wb.length+'</strong> 题 · 好题本 <strong>'+gd.length+'</strong> 题';
+}
+
+function renderReview(){
+  updateStats();
+  const dueQs=getDueQuestions();
+  const allQs=JSON.parse(localStorage.getItem('sci_review')||'[]');
+  if(dueQs.length===0){
+    var prog=JSON.parse(localStorage.getItem('sci_prog')||'{}');
+    var hasAnswered=false;
+    for(var k in prog){if(prog[k]&&(prog[k].c>0||prog[k].s>0)){hasAnswered=true;break}}
+    if(!hasAnswered){
+      main.innerHTML=`<div class="empty"><div class="empty-icon">📭</div><div class="empty-title">还没有错题记录</div><div class="empty-text">错题本里空空如也——说明你还没开始答题呢！<br>去闯关模式做题吧，答错的题目会自动加入复习队列。<br>连续答对3次同一道题，它就能从这里"毕业"。</div><a class="btn" href="index.html">🏠 回首页</a></div>`;
+    }else if(allQs.length===0){
+      main.innerHTML=`<div class="empty"><div class="empty-icon">🏆</div><div class="empty-title">太厉害了，全部正确！</div><div class="empty-text">你答过的所有题目都是对的，一道错题都没有！<br>继续保持这个状态，你就是科学小达人～<br><br>去闯关模式挑战更多题目吧。</div><a class="btn" href="index.html">🏠 回首页</a></div>`;
+    }else{
+      main.innerHTML=`<div class="empty"><div class="empty-icon">🎉</div><div class="empty-title">今天没有待复习的错题！</div><div class="empty-text">所有错题都已按计划复习完毕。<br>做错的题目会在1天后自动出现在复习队列中，<br>连续答对3次即可"毕业"。<br><br>去闯关模式做新题，答错的题会自动加入复习队列。</div><a class="btn" href="index.html">🏠 回首页</a></div>`;
+    }
+    return;
   }
-}else{
   let qi=0,results=[];
   showQ();
 
@@ -196,7 +180,6 @@ if(dueQs.length===0){
     saveReviewQueue(dueQs);
     const correct=results.filter(r=>r.result==='correct').length;
     const graduates=results.filter(r=>r.action==='graduate').length;
-    // 保存毕业计数
     const prevGrad=parseInt(localStorage.getItem('sci_review_graduate')||'0');
     localStorage.setItem('sci_review_graduate',prevGrad+graduates);
 
@@ -216,6 +199,45 @@ if(dueQs.length===0){
       </div>`;
   }
 }
+
+function renderWrongbook(){
+  updateStats();
+  const wb=JSON.parse(localStorage.getItem('sci_wrongbook')||'[]');
+  if(wb.length===0){
+    main.innerHTML='<div class="empty"><div class="empty-icon">📕</div><div class="empty-title">错题本是空的</div><div class="empty-text">还没有答错的题目。<br>去闯关模式做题，答错的题会自动进入错题本，<br>并且永远不会被移除。</div><a class="btn" href="index.html">🏠 回首页</a></div>';
+    return;
+  }
+  main.innerHTML='<div style="max-width:700px;margin:0 auto;padding:16px">'+wb.map((q,i)=>{
+    const uname=UNAMES[q.uid]||'';
+    return '<div class="book-item"><div class="book-unit">'+uname+' · 第'+(i+1)+'题</div><div class="bq">'+q.q+'</div><div class="ba">✅ '+String.fromCharCode(65+q.a)+'. '+q.o[q.a]+'</div>'+(q.e?'<div class="be">📖 '+q.e+'</div>':'')+'</div>';
+  }).join('')+'</div>';
+}
+
+function renderGoodbook(){
+  updateStats();
+  const gd=JSON.parse(localStorage.getItem('sci_good')||'[]');
+  if(gd.length===0){
+    main.innerHTML='<div class="empty"><div class="empty-icon">⭐</div><div class="empty-title">好题本是空的</div><div class="empty-text">在闯关模式做题时，觉得题目不错就点 ⭐ 收藏，<br>它会出现在这里，方便你以后回顾。</div><a class="btn" href="index.html">🏠 回首页</a></div>';
+    return;
+  }
+  main.innerHTML='<div style="max-width:700px;margin:0 auto;padding:16px">'+gd.map((q,i)=>{
+    const uname=UNAMES[q.uid]||'';
+    return '<div class="book-item"><div class="book-unit">'+uname+' · 第'+(i+1)+'题</div><div class="bq">'+q.q+'</div><div class="ba">✅ '+String.fromCharCode(65+q.a)+'. '+q.o[q.a]+'</div>'+(q.e?'<div class="be">📖 '+q.e+'</div>':'')+'</div>';
+  }).join('')+'</div>';
+}
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.onclick=function(){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    this.classList.add('active');
+    var t=this.dataset.tab;
+    if(t==='review')renderReview();
+    else if(t==='wrong')renderWrongbook();
+    else renderGoodbook();
+  };
+});
+
+renderReview();
 </script>
 </body>
 </html>

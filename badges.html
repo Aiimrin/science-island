@@ -58,13 +58,16 @@ function playTone(freq,dur,type,vol,delay){
 }
 function sfxUnlock(){AC.resume();playTone(523,.1,'square',.1,0);playTone(659,.1,'square',.1,.08);playTone(784,.1,'square',.1,.16);playTone(1047,.2,'square',.12,.24);playTone(784,.15,'square',.1,.4);playTone(1047,.3,'square',.12,.5)}
 function sfxClick(){AC.resume();playTone(880,.08,'square',.08,0)}
+function sfxAllMaster(){AC.resume();[523,659,784,1047].forEach((f,i)=>playTone(f,.16,'square',.12,i*.12));playTone(1319,.45,'square',.14,.5)}
+function sfxAllLab(){AC.resume();[392,494,587,784].forEach((f,i)=>playTone(f,.16,'triangle',.12,i*.12));playTone(988,.45,'triangle',.14,.5)}
+function sfxAllBadges(){AC.resume();[523,659,784,1047,1319,1568].forEach((f,i)=>playTone(f,.2,'square',.13,i*.1));playTone(2093,.6,'square',.15,.6)}
 
 // ==================== 数据 ====================
 const UNITS=[
-  {id:'s4a1',name:'动物王国',sem:'四上',icon:'🐾'},{id:'s4a2',name:'运动竞技',sem:'四上',icon:'🏎️'},
-  {id:'s4a3',name:'力学工坊',sem:'四上',icon:'⚡'},{id:'s4a4',name:'电路实验室',sem:'四上',icon:'💡'},
-  {id:'s3b1',name:'植物乐园',sem:'三下',icon:'🌱'},{id:'s3b2',name:'声音探秘',sem:'三下',icon:'🔊'},
-  {id:'s3b3',name:'材料工坊',sem:'三下',icon:'🧱'},{id:'s3b4',name:'气象站',sem:'三下',icon:'🌈'},
+  {id:'s4a1',name:'动物王国',sem:'四上',icon:'🐾',labIcon:'🦴'},{id:'s4a2',name:'运动竞技',sem:'四上',icon:'🏎️',labIcon:'🚌'},
+  {id:'s4a3',name:'力学工坊',sem:'四上',icon:'⚡',labIcon:'⚖️'},{id:'s4a4',name:'电路实验室',sem:'四上',icon:'💡',labIcon:'🔋'},
+  {id:'s3b1',name:'植物乐园',sem:'三下',icon:'🌱',labIcon:'🌻'},{id:'s3b2',name:'声音探秘',sem:'三下',icon:'🔊',labIcon:'🎸'},
+  {id:'s3b3',name:'材料工坊',sem:'三下',icon:'🧱',labIcon:'🔨'},{id:'s3b4',name:'气象站',sem:'三下',icon:'🌈',labIcon:'🌡️'},
 ];
 const BADGES=[{id:'master',name:'知识大师',desc:'闯关全部通关'},{id:'lab',name:'实验达人',desc:'实验室探索完成'}];
 
@@ -72,6 +75,7 @@ const pr=JSON.parse(localStorage.getItem('sci_prog')||'{}');
 const labPr=JSON.parse(localStorage.getItem('sci_lab')||'{}');
 const pending=JSON.parse(localStorage.getItem('sci_pending')||'[]');
 let unlocked=0,total=UNITS.length*BADGES.length;
+let masterCount=0,labCount=0,celMaster=false,celLab=false,celAll=false;
 
 function isUnlocked(uid,bid){
   if(bid==='master')return (pr[uid]||{c:0}).c>=4;
@@ -85,14 +89,14 @@ UNITS.forEach(u=>{
     const badgeKey=u.id+'-'+bt.id;
     const got=isUnlocked(u.id,bt.id);
     const isPending=pending.indexOf(badgeKey)!==-1;
-    if(got&&!isPending)unlocked++;
+    if(got&&!isPending){unlocked++;if(bt.id==='master')masterCount++;else labCount++}
 
     const card=document.createElement('div');
     card.className='badge-card'+(got?' unlocked':(isPending?' pending':' locked'));
     card.setAttribute('data-key',badgeKey);
     const star=got?'⭐':'';
     card.innerHTML=`
-      <div class="badge-icon">${bt.id==='master'?u.icon:'🔬'}<div class="frame"></div></div>
+      <div class="badge-icon">${bt.id==='master'?u.icon:u.labIcon}<div class="frame"></div></div>
       <div class="badge-name">${star} ${bt.name}</div>
       <div class="badge-unit">${u.sem} · ${u.name}</div>
       <div class="badge-status${got?' got':(isPending?' pending':' lost')}">${got?bt.desc:(isPending?'👆 点击解锁':'🔒 未解锁')}</div>
@@ -105,6 +109,7 @@ UNITS.forEach(u=>{
         var p=JSON.parse(localStorage.getItem('sci_pending')||'[]');
         var idx=p.indexOf(badgeKey);
         if(idx!==-1){p.splice(idx,1);localStorage.setItem('sci_pending',JSON.stringify(p))}
+        if(bt.id==='lab'){var lp=JSON.parse(localStorage.getItem('sci_lab')||'{}');lp[u.id]={done:true};localStorage.setItem('sci_lab',JSON.stringify(lp))}
         // 动画
         card.classList.remove('pending');card.classList.add('unlocked','reveal');
         card.querySelector('.pending-overlay').remove();
@@ -125,7 +130,11 @@ UNITS.forEach(u=>{
         }
         // 更新计数
         unlocked++;
+        if(bt.id==='master')masterCount++;else labCount++;
         document.getElementById('stats').innerHTML='已获得 <strong>'+unlocked+'</strong> / '+total+' 枚徽章'+(unlocked>=total?' 🎉 全部集齐！':'');
+        if(unlocked>=16&&!celAll){celAll=true;sfxAllBadges();setTimeout(celAllBadges,700)}
+        else if(masterCount>=8&&!celMaster){celMaster=true;sfxAllMaster();setTimeout(celAllMaster,500)}
+        else if(labCount>=8&&!celLab){celLab=true;sfxAllLab();setTimeout(celAllLab,500)}
       };
     }
 
@@ -138,6 +147,21 @@ document.getElementById('stats').innerHTML=
   (unlocked>=total?' 🎉 全部集齐！':(pending.length>0?' · <span style="color:#c08020">'+pending.length+'枚待解锁</span>':''));
 if(unlocked===0&&pending.length===0)document.getElementById('stats').innerHTML+='<br><span style="font-size:12px">完成闯关模式即可解锁徽章</span>';
 
+function showCelebrate(icon,title,desc,btnText){
+  var ov=document.createElement('div');
+  ov.className='cel-overlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;';
+  ov.innerHTML='<div style="background:linear-gradient(180deg,#3a3020,#2a2010);border:3px solid #f0d050;border-radius:12px;padding:32px 28px;max-width:380px;width:90%;text-align:center;color:#f0e0c0;box-shadow:0 0 40px rgba(240,208,80,.4)">'
+    +'<div style="font-size:64px;line-height:1;margin-bottom:12px">'+icon+'</div>'
+    +'<div style="font-size:24px;font-weight:700;margin-bottom:10px">'+title+'</div>'
+    +'<div style="font-size:14px;line-height:1.8;color:#c8b898;margin-bottom:18px">'+desc+'</div>'
+    +'<button onclick="this.closest(\'.cel-overlay\').remove()" style="padding:12px 32px;border:2px solid #f0d050;background:#5a4830;color:#f0e0c0;font-size:16px;font-weight:700;cursor:pointer;border-radius:6px">'+btnText+'</button>'
+    +'</div>';
+  document.body.appendChild(ov);
+}
+function celAllMaster(){showCelebrate('🏆','闯关徽章全部集齐！','8 枚知识大师徽章全部点亮！<br>你在闯关模式中通关了所有单元。','继续加油 💪')}
+function celAllLab(){showCelebrate('🔬','实验徽章全部集齐！','8 枚实验达人徽章全部点亮！<br>你在实验室里完成了所有实验。','继续加油 💪')}
+function celAllBadges(){showCelebrate('👑','全部徽章集齐！','16 枚徽章全部点亮！<br>你是真正的科学闯关岛大师！','太棒了 🎉')}
 // BGM开关
 function toggleBGM(){
   const a=document.getElementById('bgm'),btn=document.getElementById('bgm-btn');

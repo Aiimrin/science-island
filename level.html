@@ -46,6 +46,16 @@ body{
 .fb-no{display:block;background:#f8e0d0;border:2px solid #d89870;color:#803020}
 .next-btn{display:none;margin-top:12px;text-align:center}
 .next-btn.show{display:block}
+.timer-bar{display:none;margin-top:12px;height:14px;background:#e8e0d0;border-radius:7px;overflow:hidden;position:relative}
+.timer-bar.show{display:block}
+.timer-fill{height:100%;width:100%;background:linear-gradient(90deg,#e0a030,#e0c860);border-radius:7px}
+.timer-text{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:11px;font-weight:700;color:#5a4020}
+.timer-tip{margin-top:8px;font-size:13px;color:#b08040;font-weight:700;text-align:center;display:none}
+.timer-tip.show{display:block}
+.fav-btn{display:none;margin-top:10px;text-align:center}
+.fav-btn.show{display:block}
+.fav-btn button{padding:8px 18px;border:2px solid #d8c8a8;background:#fdf6ed;font-size:14px;cursor:pointer;border-radius:6px;color:#4a3020;font-family:inherit;font-weight:700}
+.fav-btn button.done{border-color:#e0a030;background:#fef5e0;color:#c08030}
 .btn{padding:12px 28px;border:2px solid #c8b898;background:#e0b860;color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:2px 2px 0 rgba(120,90,50,.15);transition:all .1s}
 .btn:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 rgba(120,90,50,.2)}
 .btn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 rgba(120,90,50,.15)}
@@ -259,7 +269,7 @@ function sfxWrong(){AC.resume();for(var i=0;i<4;i++)playTone(400-i*100,.08,'squa
 function sfxCombo(){AC.resume();playTone(523,.08,'square',.1,0);playTone(659,.08,'square',.1,.07);playTone(784,.08,'square',.1,.14);playTone(1047,.15,'square',.12,.2)}
 function sfxWin(){AC.resume();playTone(523,.12,'square',.1,0);playTone(659,.12,'square',.1,.1);playTone(784,.12,'square',.1,.2);playTone(1047,.25,'square',.12,.3)}
 
-function saveToReview(q,uid){var r=JSON.parse(localStorage.getItem('sci_review')||'[]');var exists=r.find(function(x){return x.uid===uid&&x.t===q.t&&x.q===q.q});if(!exists){r.push({uid:uid,t:q.t,q:q.q,o:q.o,a:q.a,e:q.e||'',lvl:0,next:new Date().toDateString()});localStorage.setItem('sci_review',JSON.stringify(r))}}
+function saveToReview(q,uid){var r=JSON.parse(localStorage.getItem('sci_review')||'[]');var exists=r.find(function(x){return x.uid===uid&&x.t===q.t&&x.q===q.q});if(!exists){r.push({uid:uid,t:q.t,q:q.q,o:q.o,a:q.a,e:q.e||'',lvl:0,next:new Date().toDateString()});localStorage.setItem('sci_review',JSON.stringify(r))}var wb=JSON.parse(localStorage.getItem('sci_wrongbook')||'[]');if(!wb.find(function(x){return x.uid===uid&&x.t===q.t&&x.q===q.q})){wb.push({uid:uid,t:q.t,q:q.q,o:q.o,a:q.a,e:q.e||''});localStorage.setItem('sci_wrongbook',JSON.stringify(wb))}}
 function updateBar(){document.getElementById('pfill').style.width=(ti/U.topics.length*100)+'%';document.getElementById('ptext').textContent=ti+' / '+U.topics.length+' 课'}
 
 function showTopic(){
@@ -302,6 +312,9 @@ function runQuiz(qs){
         <div class="quiz-opts" id="opts-${qi}">${q.o.map((o,i)=>`<button class="quiz-opt" data-idx="${i}">${'ABCD'[i]}. ${o}</button>`).join('')}</div>
         <div class="feedback" id="fb-${qi}"></div>
         <div class="next-btn" id="next-${qi}"><button class="btn sm">下一题 →</button></div>
+        <div class="timer-bar" id="timer-${qi}"><div class="timer-fill" id="timer-fill-${qi}"></div><span class="timer-text" id="timer-text-${qi}">10s</span></div>
+        <div class="timer-tip" id="timer-tip-${qi}">📖 请仔细阅读解析，10 秒后可进入下一题 · 觉得不错可 ⭐ 收藏</div>
+        <div class="fav-btn" id="fav-${qi}"><button>⭐ 收藏到好题本</button></div>
       </div>
     `;
     const opts=document.getElementById('opts-'+qi);
@@ -315,7 +328,31 @@ function runQuiz(qs){
       totalQ++;
       if(combo>=3){const fc=document.getElementById('fcombo');fc.textContent='🔥 '+combo+'连击！';fc.className='float-combo pop';setTimeout(()=>fc.className='float-combo',800)}
       document.getElementById('cbo').textContent=combo>=2?'🔥 '+combo+'连击':'';document.getElementById('cbo').className='quiz-combo'+(combo>=2?' on':'');
-      next.className='next-btn show';
+      var timer=document.getElementById('timer-'+qi);
+      var tip=document.getElementById('timer-tip-'+qi);
+      var fill=document.getElementById('timer-fill-'+qi);
+      var text=document.getElementById('timer-text-'+qi);
+      timer.className='timer-bar show';
+      tip.className='timer-tip show';
+      var remain=10,t0=performance.now();
+      function tick(){
+        var left=Math.max(0,remain-(performance.now()-t0)/1000);
+        text.textContent=Math.ceil(left)+'s';
+        fill.style.width=(left/remain*100)+'%';
+        if(left<=0){next.className='next-btn show';timer.className='timer-bar';tip.className='timer-tip';return}
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+      var fav=document.getElementById('fav-'+qi);
+      fav.className='fav-btn show';
+      var favBtn=fav.querySelector('button');
+      var g0=JSON.parse(localStorage.getItem('sci_good')||'[]');
+      if(g0.find(function(x){return x.uid===uid&&x.t===q.t&&x.q===q.q})){favBtn.className='done';favBtn.textContent='⭐ 已收藏'}
+      favBtn.onclick=function(){
+        var gg=JSON.parse(localStorage.getItem('sci_good')||'[]');
+        if(!gg.find(function(x){return x.uid===uid&&x.t===q.t&&x.q===q.q})){gg.push({uid:uid,t:q.t,q:q.q,o:q.o,a:q.a,e:q.e||''});localStorage.setItem('sci_good',JSON.stringify(gg))}
+        this.className='done';this.textContent='⭐ 已收藏';
+      };
     }});
     next.querySelector('button').onclick=()=>{qi++;renderQ()};
   }
