@@ -75,7 +75,7 @@ body{
 </head>
 <body>
 <audio id="bgm" src="Spring_Wild_Horseradish_Jam.mp3" autoplay loop volume="0.18"></audio>
-<script>(function(){var a=document.getElementById('bgm');var t=parseFloat(localStorage.getItem('bgm_t')||'0');if(t>0)a.currentTime=t;a.play();setInterval(function(){localStorage.setItem('bgm_t',a.currentTime)},300);window.addEventListener('beforeunload',function(){localStorage.setItem('bgm_t',a.currentTime)});})();</script>
+<script>(function(){var a=document.getElementById('bgm');var t=parseFloat(localStorage.getItem('bgm_t')||'0');if(t>0)a.currentTime=t;a.play();setInterval(function(){localStorage.setItem('bgm_t',a.currentTime)},300);window.addEventListener('beforeunload',function(){localStorage.setItem('bgm_t',a.currentTime)});document.addEventListener('click',function p(){if(a.paused){a.currentTime=parseFloat(localStorage.getItem('bgm_t')||'0');a.play()}document.removeEventListener('click',p)},{once:true});})();</script>
 <div class="top">
   <button class="back-btn" onclick="history.back()">←</button>
   <div class="unit-info"><div class="unit-name" id="uname">---</div><div class="unit-desc" id="udesc">---</div></div>
