@@ -324,7 +324,7 @@ function runQuiz(qs){
     btns.forEach(b=>{b.onclick=function(){
       const idx=parseInt(this.dataset.idx);
       btns.forEach(bb=>bb.classList.add('chosen'));
-      if(idx===q.a){this.classList.add('correct');fb.className='feedback fb-ok';fb.innerHTML='✅ 正确！'+(q.e?'<br><span style="font-size:13px;font-weight:400;margin-top:4px;display:inline-block">📖 '+q.e+'</span>':'');ok++;combo++;tc=ok;totalC++;sfxCorrect();if(combo%3===0)sfxCombo()}else{this.classList.add('wrong');btns[q.a].classList.add('correct');fb.className='feedback fb-no';fb.innerHTML='❌ 正确答案是 '+String.fromCharCode(65+q.a)+(q.e?'<br><span style="font-size:13px;font-weight:400;margin-top:4px;display:inline-block">📖 '+q.e+'</span>':'');combo=0;sfxWrong();saveToReview(q,uid)}
+      if(idx===q.a){this.classList.add('correct');fb.className='feedback fb-ok';fb.innerHTML='✅ 正确！'+(q.e?'<br><span style="font-size:13px;font-weight:400;margin-top:4px;display:inline-block">📖 '+q.e+'</span>':'');ok++;combo++;tc=ok;totalC++;sfxCorrect();if(combo%3===0)sfxCombo()}else{this.classList.add('wrong');btns[q.a].classList.add('correct');fb.className='feedback fb-no';fb.innerHTML='❌ 正确答案是 '+String.fromCharCode(65+q.a)+(q.e?'<br><span style="font-size:13px;font-weight:400;margin-top:4px;display:inline-block">📖 '+q.e+'</span>':'');combo=0;sfxWrong();saveToReview(q,uid);(function(){var _p=JSON.parse(localStorage.getItem('sci_prog')||'{}');if((_p[uid]||{c:0}).c<U.topics.length){var _ft=JSON.parse(localStorage.getItem('sci_first_try')||'{}');if(!_ft[uid])_ft[uid]={wrong:0,done:false};_ft[uid].wrong++;localStorage.setItem('sci_first_try',JSON.stringify(_ft))}})()}
       totalQ++;
       if(combo>=3){const fc=document.getElementById('fcombo');fc.textContent='🔥 '+combo+'连击！';fc.className='float-combo pop';setTimeout(()=>fc.className='float-combo',800)}
       document.getElementById('cbo').textContent=combo>=2?'🔥 '+combo+'连击':'';document.getElementById('cbo').className='quiz-combo'+(combo>=2?' on':'');
@@ -370,6 +370,10 @@ function finishTopic(){
   localStorage.setItem('sci_prog',JSON.stringify(pr));
   // 徽章解锁检测
   if(pr[uid].c>=U.topics.length){
+    var ft=JSON.parse(localStorage.getItem('sci_first_try')||'{}');
+    if(!ft[uid])ft[uid]={wrong:0,done:false};
+    ft[uid].done=true;
+    localStorage.setItem('sci_first_try',JSON.stringify(ft));
     var pending=JSON.parse(localStorage.getItem('sci_pending')||'[]');
     var badgeId=uid+'-master';
     if(pending.indexOf(badgeId)===-1){pending.push(badgeId);localStorage.setItem('sci_pending',JSON.stringify(pending))}

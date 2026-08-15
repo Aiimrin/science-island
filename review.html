@@ -182,6 +182,8 @@ function renderReview(){
     const graduates=results.filter(r=>r.action==='graduate').length;
     const prevGrad=parseInt(localStorage.getItem('sci_review_graduate')||'0');
     localStorage.setItem('sci_review_graduate',prevGrad+graduates);
+    const prevCount=parseInt(localStorage.getItem('sci_review_count')||'0');
+    localStorage.setItem('sci_review_count',prevCount+results.length);
 
     main.innerHTML=`
       <div style="text-align:center;padding:40px 20px">

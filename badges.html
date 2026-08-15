@@ -37,6 +37,18 @@ h1{font-size:24px;font-weight:700}
 /* 烟花粒子 */
 .spark{position:fixed;pointer-events:none;z-index:200;font-size:24px;animation:sparkFly .8s ease-out forwards}
 @keyframes sparkFly{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(0)}}
+/* 隐藏徽章 */
+.badge-card.hidden{cursor:pointer}
+.badge-card.hidden .badge-icon .frame{border-style:dashed}
+.badge-card.hidden-ready{border-color:#e8c840;animation:hiddenPulse 1.8s ease-in-out infinite}
+@keyframes hiddenPulse{0%,100%{box-shadow:2px 2px 0 rgba(120,90,50,.08)}50%{box-shadow:0 0 26px rgba(240,208,80,.55);border-color:#f0d050}}
+.badge-card.hidden-reveal{animation:bigReveal .9s cubic-bezier(.34,1.56,.64,1)}
+@keyframes bigReveal{0%{transform:scale(.4) rotate(-10deg);opacity:.3}60%{transform:scale(1.18) rotate(4deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+.hidden-name{letter-spacing:2px;color:#b8a880}
+.ring{position:fixed;pointer-events:none;z-index:210;width:40px;height:40px;border:4px solid #f0d050;border-radius:50%;transform:translate(-50%,-50%);animation:ringExpand 1s ease-out forwards}
+@keyframes ringExpand{0%{opacity:1;transform:translate(-50%,-50%) scale(.5);box-shadow:0 0 30px rgba(240,208,80,.8)}100%{opacity:0;transform:translate(-50%,-50%) scale(8);box-shadow:0 0 60px rgba(240,208,80,.4)}}
+.flash{position:fixed;inset:0;z-index:205;background:radial-gradient(circle,rgba(255,240,180,.95),rgba(240,208,80,.45));opacity:0;pointer-events:none;animation:screenFlash .7s ease-out forwards}
+@keyframes screenFlash{0%{opacity:.9}100%{opacity:0}}
 </style>
 </head>
 <body>
@@ -61,6 +73,7 @@ function sfxClick(){AC.resume();playTone(880,.08,'square',.08,0)}
 function sfxAllMaster(){AC.resume();[523,659,784,1047].forEach((f,i)=>playTone(f,.16,'square',.12,i*.12));playTone(1319,.45,'square',.14,.5)}
 function sfxAllLab(){AC.resume();[392,494,587,784].forEach((f,i)=>playTone(f,.16,'triangle',.12,i*.12));playTone(988,.45,'triangle',.14,.5)}
 function sfxAllBadges(){AC.resume();[523,659,784,1047,1319,1568].forEach((f,i)=>playTone(f,.2,'square',.13,i*.1));playTone(2093,.6,'square',.15,.6)}
+function sfxHiddenUnlock(){AC.resume();[523,659,784,1047,1319,1568,2093].forEach((f,i)=>playTone(f,.18,'square',.12,i*.09));[1047,1319,1568].forEach((f,i)=>playTone(f,.4,'triangle',.13,.63+i*.1));playTone(2637,.55,'square',.14,.63)}
 
 // ==================== 数据 ====================
 const UNITS=[
@@ -74,7 +87,7 @@ const BADGES=[{id:'master',name:'知识大师',desc:'闯关全部通关'},{id:'l
 const pr=JSON.parse(localStorage.getItem('sci_prog')||'{}');
 const labPr=JSON.parse(localStorage.getItem('sci_lab')||'{}');
 const pending=JSON.parse(localStorage.getItem('sci_pending')||'[]');
-let unlocked=0,total=UNITS.length*BADGES.length;
+let unlocked=0,total=UNITS.length*BADGES.length+2;
 let masterCount=0,labCount=0,celMaster=false,celLab=false,celAll=false;
 
 function isUnlocked(uid,bid){
@@ -131,8 +144,8 @@ UNITS.forEach(u=>{
         // 更新计数
         unlocked++;
         if(bt.id==='master')masterCount++;else labCount++;
-        document.getElementById('stats').innerHTML='已获得 <strong>'+unlocked+'</strong> / '+total+' 枚徽章'+(unlocked>=total?' 🎉 全部集齐！':'');
-        if(unlocked>=16&&!celAll){celAll=true;sfxAllBadges();setTimeout(celAllBadges,700)}
+        renderStats();
+        if(unlocked>=total&&!celAll){celAll=true;sfxAllBadges();setTimeout(celAllBadges,900)}
         else if(masterCount>=8&&!celMaster){celMaster=true;sfxAllMaster();setTimeout(celAllMaster,500)}
         else if(labCount>=8&&!celLab){celLab=true;sfxAllLab();setTimeout(celAllLab,500)}
       };
@@ -142,10 +155,78 @@ UNITS.forEach(u=>{
   });
 });
 
-document.getElementById('stats').innerHTML=
-  '已获得 <strong>'+unlocked+'</strong> / '+total+' 枚徽章'+
-  (unlocked>=total?' 🎉 全部集齐！':(pending.length>0?' · <span style="color:#c08020">'+pending.length+'枚待解锁</span>':''));
-if(unlocked===0&&pending.length===0)document.getElementById('stats').innerHTML+='<br><span style="font-size:12px">完成闯关模式即可解锁徽章</span>';
+// ==================== 隐藏徽章 ====================
+const HIDDEN_BADGES=[
+  {id:'diligent',name:'勤学徽章',icon:'📖',desc:'累计复习错题 20 道',hint:'🔍 神秘徽章之一……它藏身于「错题复习」——多去复习几次错题，它自会现身。'},
+  {id:'precise',name:'精准徽章',icon:'🎯',desc:'初次挑战全部单元，错题 ≤ 8',hint:'🔍 神秘徽章之一……它考验「初次闯关」——第一次挑战每个单元时，尽量少出错。'}
+];
+const hiddenGot=JSON.parse(localStorage.getItem('sci_hidden')||'[]');
+function isHiddenReady(id){
+  if(id==='diligent')return (parseInt(localStorage.getItem('sci_review_count')||'0'))>=20;
+  if(id==='precise'){
+    var ft=JSON.parse(localStorage.getItem('sci_first_try')||'{}');
+    if(!UNITS.every(function(u){return ft[u.id]&&ft[u.id].done}))return false;
+    var tot=UNITS.reduce(function(s,u){return s+(ft[u.id]?ft[u.id].wrong:0)},0);
+    return tot<=UNITS.length;
+  }
+  return false;
+}
+HIDDEN_BADGES.forEach(function(hb){
+  const revealed=hiddenGot.indexOf(hb.id)!==-1;
+  const ready=!revealed&&isHiddenReady(hb.id);
+  if(revealed)unlocked++;
+  const card=document.createElement('div');
+  card.className='badge-card'+(revealed?' unlocked':(ready?' hidden hidden-ready':' hidden'));
+  card.innerHTML=revealed
+    ? `<div class="badge-icon">${hb.icon}<div class="frame"></div></div><div class="badge-name">⭐ ${hb.name}</div><div class="badge-unit">🎁 隐藏徽章</div><div class="badge-status got">${hb.desc}</div>`
+    : `<div class="badge-icon">❓<div class="frame"></div></div><div class="badge-name hidden-name">？？？</div><div class="badge-unit">🎁 隐藏徽章</div><div class="badge-status ${ready?'pending':'lost'}">${ready?'✨ 点击解锁':'🔒 神秘徽章'}</div>`;
+  if(!revealed){
+    card.onclick=function(){
+      if(isHiddenReady(hb.id)){
+        var gh=JSON.parse(localStorage.getItem('sci_hidden')||'[]');
+        if(gh.indexOf(hb.id)===-1){gh.push(hb.id);localStorage.setItem('sci_hidden',JSON.stringify(gh))}
+        card.classList.remove('hidden','hidden-ready');card.classList.add('unlocked','hidden-reveal');
+        card.innerHTML=`<div class="badge-icon">${hb.icon}<div class="frame"></div></div><div class="badge-name">⭐ ${hb.name}</div><div class="badge-unit">🎁 隐藏徽章</div><div class="badge-status got">${hb.desc}</div>`;
+        sfxHiddenUnlock();spawnHiddenCelebration(card);
+        unlocked++;renderStats();
+        if(unlocked>=total&&!celAll){celAll=true;sfxAllBadges();setTimeout(celAllBadges,900)}
+      }else{
+        showHint(hb.hint);
+      }
+    };
+  }
+  grid.appendChild(card);
+});
+
+function spawnHiddenCelebration(card){
+  var rect=card.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  var ring=document.createElement('div');ring.className='ring';
+  ring.style.left=cx+'px';ring.style.top=cy+'px';
+  document.body.appendChild(ring);setTimeout(function(){ring.remove()},1000);
+  var fl=document.createElement('div');fl.className='flash';
+  document.body.appendChild(fl);setTimeout(function(){fl.remove()},700);
+  var emojis=['✨','🌟','💫','⭐','🎉','💛','🎇'];
+  for(var i=0;i<24;i++){
+    var s=document.createElement('div');s.className='spark';
+    s.style.left=cx+'px';s.style.top=cy+'px';
+    var a=(Math.PI*2*i)/24;
+    var r=90+Math.random()*130;
+    s.style.setProperty('--dx',Math.cos(a)*r+'px');
+    s.style.setProperty('--dy',Math.sin(a)*r+'px');
+    s.textContent=emojis[i%emojis.length];
+    document.body.appendChild(s);
+    setTimeout(function(){s.remove()},900);
+  }
+}
+function showHint(text){showCelebrate('🔍','神秘徽章',text,'继续探索 👀')}
+
+function renderStats(){
+  document.getElementById('stats').innerHTML=
+    '已获得 <strong>'+unlocked+'</strong> / '+total+' 枚徽章'+
+    (unlocked>=total?' 🎉 全部集齐！':(pending.length>0?' · <span style="color:#c08020">'+pending.length+'枚待解锁</span>':''));
+  if(unlocked===0&&pending.length===0)document.getElementById('stats').innerHTML+='<br><span style="font-size:12px">完成闯关模式即可解锁徽章</span>';
+}
+renderStats();
 
 function showCelebrate(icon,title,desc,btnText){
   var ov=document.createElement('div');
@@ -161,7 +242,7 @@ function showCelebrate(icon,title,desc,btnText){
 }
 function celAllMaster(){showCelebrate('🏆','闯关徽章全部集齐！','8 枚知识大师徽章全部点亮！<br>你在闯关模式中通关了所有单元。','继续加油 💪')}
 function celAllLab(){showCelebrate('🔬','实验徽章全部集齐！','8 枚实验达人徽章全部点亮！<br>你在实验室里完成了所有实验。','继续加油 💪')}
-function celAllBadges(){showCelebrate('👑','全部徽章集齐！','16 枚徽章全部点亮！<br>你是真正的科学闯关岛大师！','太棒了 🎉')}
+function celAllBadges(){showCelebrate('👑','全部徽章集齐！','18 枚徽章全部点亮！<br>你是真正的科学闯关岛大师！','太棒了 🎉')}
 // BGM开关
 function toggleBGM(){
   const a=document.getElementById('bgm'),btn=document.getElementById('bgm-btn');
