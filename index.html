@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>科学闯关岛</title>
+<script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?23b6df4090334fe62e0c4facf233e2eb";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s)})();</script>
 <style>
 @font-face{font-family:'PxFont';src:url('JinzisheBianzheng-Regular.ttf') format('truetype');font-weight:400}
 @font-face{font-family:'PxFont';src:url('JinzisheBianzheng-Regular.ttf') format('truetype');font-weight:700}
@@ -63,6 +64,11 @@ body:active{cursor:grabbing}
 .modal-btn.primary{background:#e0b860;color:#fff;border-color:#c89840}.modal-btn.primary:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 rgba(120,90,50,.18)}
 .modal-btn.secondary{background:#fffdf8;color:#5a4030}.modal-btn.secondary:hover{background:#fdf6ed}
 .modal-close{position:absolute;top:10px;right:12px;width:26px;height:26px;border:2px solid rgba(0,0,0,.08);background:#fffdf8;color:#9a8070;font-size:16px;cursor:pointer;font-weight:700}
+.disc-title{font-size:26px;font-weight:700;color:#5a4030;text-align:center;margin-bottom:14px}
+.disc-sec{margin-bottom:13px}
+.disc-sec h4{font-size:18px;font-weight:700;color:#5a4030;margin-bottom:3px}
+.disc-sec p{font-size:14px;color:#6a5540;line-height:1.75}
+.disc-help{font-size:14px;color:#8a7060;line-height:1.7;background:#fdf6ed;border:2px solid rgba(0,0,0,.04);padding:10px 14px;border-radius:6px;margin-bottom:16px}
 @media(max-width:640px){.top-btn{padding:6px 10px;font-size:16px}.btn-group{flex-direction:column;gap:6px}.title-img{width:min(40vw,150px)}.review-banner{font-size:14px;padding:6px 12px;bottom:12px}.modal{padding:20px 15px 14px}}
 </style>
 </head>
@@ -96,6 +102,19 @@ body:active{cursor:grabbing}
       <button class="modal-btn secondary" onclick="startLab()">🧪 实验</button>
     </div>
     <div style="margin-top:8px"><button class="modal-btn secondary" onclick="startTree()" style="width:100%">🌳 知识树</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="disc-overlay" onclick="closeDisc(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeDisc()">X</button>
+    <div class="disc-title">📜 免责声明与使用说明</div>
+    <div class="disc-help"><b>使用说明</b><br>🖱️ 桌面：横向拖拽地图<br>👆 手机：纵向滑动<br>🏝️ 点击岛屿进入学习</div>
+    <div class="disc-sec"><h4>内容依据</h4><p>本站内容依据苏教版小学科学三年级下册与四年级上册教材编写，面向小学生科学学习，建议在家长或老师指导下使用。</p></div>
+    <div class="disc-sec"><h4>责任限制</h4><p>使用者因依赖本站内容而产生的任何直接或间接损失，本站维护者不承担法律责任。对于因内容不准确导致的学习、测验、考试等偏差，请自行向老师或教材核实确认。</p></div>
+    <div class="disc-sec"><h4>隐私说明</h4><p>本站为纯前端应用，学习进度、错题、徽章等数据仅保存在你本地的浏览器中，不会上传到任何服务器，也不收集任何个人信息；清除浏览器数据会同时清除学习记录。</p></div>
+    <div class="disc-sec"><h4>版权声明</h4><p>本站的题目、插图、代码等均为原创或已获授权使用，仅供个人学习交流，未经许可请勿用于商业用途。</p></div>
+    <div class="disc-sec"><h4>第三方资源</h4><p>本站使用了开源字体、背景音乐及知识树组件（markmap.js）等第三方资源，相关版权归原作者所有。</p></div>
+    <div class="disc-sec"><h4>反馈与勘误</h4><p>如发现内容错误、需要更新或有建议，欢迎发送邮件至 2179662832@qq.com，来信请注明「科学闯关岛反馈」，收到后会及时处理。</p></div>
   </div>
 </div>
 <style>@keyframes dB{0%,100%{opacity:1}50%{opacity:.3}}</style>
@@ -352,7 +371,8 @@ function startLab(id){location.href='lab.html?unit='+(id||aid)}
 function startTree(){location.href='tree.html?unit='+(aid)}
 function openBadges(){location.href='badges.html'}
 function openReview(){location.href='review.html'}
-function toggleHelp(){alert('操作帮助\n\n🖱️ 桌面：横向拖拽\n👆 手机：纵向滑动\n🏝️ 点击岛屿进入学习')}
+function toggleHelp(){document.getElementById('disc-overlay').classList.add('active')}
+function closeDisc(e){if(e&&e.target!==document.getElementById('disc-overlay'))return;document.getElementById('disc-overlay').classList.remove('active')}
 function clearProgress(){if(confirm('确定要清空所有学习进度吗？此操作不可恢复。')){localStorage.removeItem('sci_prog');localStorage.removeItem('sci_review');localStorage.removeItem('sci_review_graduate');localStorage.removeItem('sci_pending');localStorage.removeItem('sci_lab');progress={};IS.forEach(is=>{progress[is.id]={c:0,s:0}});document.getElementById('review-count').textContent='0';document.getElementById('badge-dot').classList.remove('on');alert('进度已清空！')}}
 function resetView(){offsetX=0;offsetY=0}
 

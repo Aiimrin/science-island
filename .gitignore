@@ -12,3 +12,7 @@ assets_pixel_platformer.zip
 test_kenney.zip
 e7874ca621d0eb6ec939640c5e248eb8.png
 spritesheet.png
+# 邮箱反馈脚本（含敏感授权码，勿提交到公开仓库）
+check_feedback.py
+setup_task.bat
+setup_task.ps1
