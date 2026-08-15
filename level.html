@@ -75,7 +75,7 @@ body{
 </head>
 <body>
 <audio id="bgm" src="Spring_Wild_Horseradish_Jam.mp3" autoplay loop volume="0.18"></audio>
-<script>(function(){var a=document.getElementById('bgm');var t=parseFloat(localStorage.getItem('bgm_t')||'0');if(t>0)a.currentTime=t;a.play();setInterval(function(){localStorage.setItem('bgm_t',a.currentTime)},300);window.addEventListener('beforeunload',function(){localStorage.setItem('bgm_t',a.currentTime)});document.addEventListener('click',function p(){if(a.paused){a.currentTime=parseFloat(localStorage.getItem('bgm_t')||'0');a.play()}document.removeEventListener('click',p)},{once:true});})();</script>
+<script>(function(){var a=document.getElementById('bgm');function sv(){try{localStorage.setItem('bgm_t',String(a.currentTime||0));localStorage.setItem('bgm_ts',String(Date.now()))}catch(e){}}function sk(){var t=parseFloat(localStorage.getItem('bgm_t')||'0'),ts=parseFloat(localStorage.getItem('bgm_ts')||'0'),d=a.duration||0;if(t>0&&ts>0&&d>0){try{a.currentTime=(t+(Date.now()-ts)/1000)%d}catch(e){}}}function pl(){sk();var p=a.play();if(p&&p.catch)p.catch(function(){})}pl();if(a.readyState<1)a.addEventListener('loadedmetadata',pl,{once:true});setInterval(sv,250);window.addEventListener('pagehide',sv);window.addEventListener('beforeunload',sv);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')sv()});['pointerdown','touchstart','click'].forEach(function(ev){document.addEventListener(ev,function(){if(window.__bgmOff)return;if(a.paused)pl()},{passive:true})})})();</script>
 <div class="top">
   <button class="back-btn" onclick="history.back()">←</button>
   <div class="unit-info"><div class="unit-name" id="uname">---</div><div class="unit-desc" id="udesc">---</div></div>
